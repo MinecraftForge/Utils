@@ -1,0 +1,19 @@
+name: Build Hash Utils
+on:
+  push:
+    branches: [master]
+    paths:
+    - hash-utils/**
+    - '!.github/workflows/**'
+    - '!settings.gradle'
+permissions:
+  contents: read
+jobs:
+  build:
+    uses: MinecraftForge/SharedActions/.github/workflows/gradle.yml@v0
+    with:
+      java: 21
+      gradle_tasks: :hash-utils:build
+      project_path: hash-utils
+    secrets:
+      DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}

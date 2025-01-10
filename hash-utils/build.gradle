@@ -1,0 +1,57 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.licenser' version '1.1.1'
+    id 'net.minecraftforge.gradleutils' version '2.4.4'
+}
+
+apply from: rootProject.file('build_shared.gradle')
+
+dependencies {
+    // Static Analysis
+    compileOnly libs.nulls
+}
+
+java {
+    // Java 8, just in case Java Version needs this
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes([
+            'Specification-Title':   'Hash Utils',
+            'Specification-Vendor':  'Forge Development LLC',
+            'Specification-Version':  gitversion.version.info.tag,
+            'Implementation-Title':  'Hash Utils',
+            'Implementation-Vendor': 'Forge Development LLC',
+            'Implementation-Version': project.version
+        ] as LinkedHashMap, 'net/minecraftforge/util/hash/')
+    }
+}
+
+publishing {
+    publications.register('mavenJava', MavenPublication).configure {
+        artifactId = project.name
+        from components.java
+
+        pom { pom ->
+            name = 'Hash Utils'
+            description = 'Common utilities for working with file hashes and caches'
+
+            gradleutils.pom.gitHubDetails = pom
+
+            license gradleutils.pom.licenses.LGPLv2_1
+
+            developers {
+                developer gradleutils.pom.Developers.LexManos
+                developer gradleutils.pom.Developers.Jonathing
+            }
+        }
+    }
+    repositories {
+        maven gradleutils.publishingForgeMaven
+    }
+}

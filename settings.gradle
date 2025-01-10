@@ -1,0 +1,23 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+}
+
+rootProject.name = 'Utils'
+
+include 'hash-utils', 'json-data-utils', 'file-utils', 'log-utils'
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            // Files
+            library('commons-io', 'commons-io', 'commons-io').version('2.18.0')
+            library('srgutils', 'net.minecraftforge', 'srgutils').version('0.5.11')
+
+            // Data
+            library('gson', 'com.google.code.gson', 'gson').version('2.10.1')
+
+            // Static Analysis
+            library('nulls', 'org.jetbrains', 'annotations').version('26.0.2')
+        }
+    }
+}

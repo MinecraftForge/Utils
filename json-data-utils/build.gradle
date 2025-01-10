@@ -1,0 +1,58 @@
+plugins {
+    id 'java-library'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.licenser' version '1.1.1'
+    id 'net.minecraftforge.gradleutils' version '2.4.4'
+}
+
+apply from: rootProject.file('build_shared.gradle')
+
+dependencies {
+    implementation libs.gson
+
+    // Static Analysis
+    compileOnly libs.nulls
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes([
+            'Specification-Title':   'JSON Data Utils',
+            'Specification-Vendor':  'Forge Development LLC',
+            'Specification-Version':  gitversion.version.info.tag,
+            'Implementation-Title':  'JSON Data Utils',
+            'Implementation-Vendor': 'Forge Development LLC',
+            'Implementation-Version': project.version
+        ] as LinkedHashMap, 'net/minecraftforge/util/data/')
+    }
+}
+
+publishing {
+    publications.register('mavenJava', MavenPublication).configure {
+        artifactId = project.name
+        from components.java
+
+        pom { pom ->
+            name = 'JSON Data Utils'
+            description = 'Utilities for working with JSON data related to Forge projects and Minecraft'
+
+            gradleutils.pom.gitHubDetails = pom
+
+            license gradleutils.pom.licenses.LGPLv2_1
+
+            developers {
+                developer gradleutils.pom.Developers.LexManos
+                developer gradleutils.pom.Developers.Jonathing
+            }
+        }
+    }
+    repositories {
+        maven gradleutils.publishingForgeMaven
+    }
+}

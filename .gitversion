@@ -1,0 +1,15 @@
+[file]
+path = "file-utils"
+tag = "files"
+
+[hash]
+path = "hash-utils"
+tag = "hash"
+
+[log]
+path = "log-utils"
+tag = "log"
+
+[data]
+path = "json-data-utils"
+tag = "json-data"
