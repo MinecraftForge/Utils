@@ -15,5 +15,6 @@ jobs:
       java: 21
       gradle_tasks: :log-utils:build
       project_path: log-utils
+      artifact_name: log-utils
     secrets:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}

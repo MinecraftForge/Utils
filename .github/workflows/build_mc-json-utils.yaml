@@ -15,5 +15,6 @@ jobs:
       java: 21
       gradle_tasks: :json-data-utils:build
       project_path: json-data-utils
+      artifact_name: json-data-utils
     secrets:
       DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
