@@ -21,6 +21,7 @@ java {
 
 jar {
     manifest {
+        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.hash')
         attributes([
             'Specification-Title':   'Hash Utils',
             'Specification-Vendor':  'Forge Development LLC',

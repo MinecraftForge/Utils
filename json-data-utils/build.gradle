@@ -22,6 +22,7 @@ java {
 
 jar {
     manifest {
+        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.json_data')
         attributes([
             'Specification-Title':   'JSON Data Utils',
             'Specification-Vendor':  'Forge Development LLC',
