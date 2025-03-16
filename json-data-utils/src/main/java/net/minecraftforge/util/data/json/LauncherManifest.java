@@ -24,7 +24,7 @@ public class LauncherManifest {
     public URL getUrl(String version) {
         if (version == null || versions == null)
             return null;
-        for (var info : versions)
+        for (VersionInfo info : versions)
             if (version.equals(info.id))
                 return info.url;
         return null;

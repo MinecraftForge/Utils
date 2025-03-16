@@ -44,7 +44,7 @@ public class JsonData {
     }
 
     private static <T> T fromJson(File file, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
-        try (var stream = new FileInputStream(file)) {
+        try (FileInputStream stream = new FileInputStream(file)) {
             return fromJson(stream, classOfT);
         } catch (IOException e) {
             throw new JsonIOException(e);
@@ -64,7 +64,7 @@ public class JsonData {
         return GSON.toJson(src);
     }
     public static void toJson(Object src, File file) throws IOException {
-        try (var writer = new FileWriter(file)) {
+        try (FileWriter writer = new FileWriter(file)) {
             GSON.toJson(src, writer);
         }
     }

@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
@@ -149,7 +150,7 @@ public final class DownloadUtils {
                         out.write(buf, 0, n);
                     }
 
-                    return out.toString(StandardCharsets.UTF_8);
+                    return out.toString(StandardCharsets.UTF_8.name());
                 }
             }
         } catch (IOException e) {
@@ -182,8 +183,8 @@ public final class DownloadUtils {
     }
 
     private static void ensureParent(File path) {
-        var parent = path.getAbsoluteFile().getParentFile();
-        if (parent != null && !parent.exists())
-            parent.mkdirs();
+        File parent = path.getAbsoluteFile().getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs())
+            throw new IllegalStateException("Cannot create parent directory for " + path);
     }
 }

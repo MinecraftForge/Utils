@@ -23,13 +23,13 @@ public class MinecraftVersion {
     public Library[] libraries;
 
     public List<Lib> getLibs() {
-        var libs = new ArrayList<Lib>();
+        List<Lib> libs = new ArrayList<>();
 
-        for (var lib : this.libraries) {
+        for (Library lib : this.libraries) {
             if (lib.rules != null && lib.rules.size() != 1)
-                throw new UnsupportedOperationException("Rules were found, but wasn't precisely one??? Rules: %s".formatted(String.valueOf(lib.rules)));
+                throw new UnsupportedOperationException("Rules were found, but wasn't precisely one??? Rules: " + lib.rules);
 
-            var os = lib.rules == null ? null : lib.rules.get(0).os.toOS();
+            OS os = lib.rules == null ? null : lib.rules.get(0).os.toOS();
             libs.add(new Lib(lib.name, lib.downloads.artifact, os));
             if (lib.downloads.classifiers != null)
                 lib.downloads.classifiers.forEach((k, v) -> libs.add(new Lib(lib.name + ':' + k, v, os)));
@@ -38,9 +38,20 @@ public class MinecraftVersion {
         return libs;
     }
 
-    public record Lib(String coord, LibraryDownload dl, @Nullable OS os) {}
+    public static final class Lib {
+        public final String coord;
+        public final LibraryDownload dl;
+        public final OS os;
+
+        public Lib(String coord, LibraryDownload dl, OS os) {
+            this.coord = coord;
+            this.dl = dl;
+            this.os = os;
+        }
+    }
 
     // TODO: [MCMaven][MinecraftVersion] Add function to filter libraries based on current operating systems
+
     /** Represents a library that is required by a minecraft version. */
     public static class Library {
         /** The artifact coordinates of the library. */
@@ -84,12 +95,16 @@ public class MinecraftVersion {
             public String name;
 
             public net.minecraftforge.util.data.OS toOS() {
-                return switch (name) {
-                    case "windows" -> net.minecraftforge.util.data.OS.WINDOWS;
-                    case "linux" -> net.minecraftforge.util.data.OS.LINUX;
-                    case "osx" -> net.minecraftforge.util.data.OS.MACOS;
-                    default -> net.minecraftforge.util.data.OS.UNKNOWN;
-                };
+                switch (this.name) {
+                    case "windows":
+                        return net.minecraftforge.util.data.OS.WINDOWS;
+                    case "linux":
+                        return net.minecraftforge.util.data.OS.LINUX;
+                    case "osx":
+                        return net.minecraftforge.util.data.OS.MACOS;
+                    default:
+                        return net.minecraftforge.util.data.OS.UNKNOWN;
+                }
             }
         }
     }

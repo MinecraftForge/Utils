@@ -14,8 +14,8 @@ public class MCJsonUtils {
      * @return The Minecraft directory
      */
     public static File getMCDir() {
-        var userHomeDir = System.getProperty("user.home", ".");
-        var mcDir = ".minecraft";
+        String userHomeDir = System.getProperty("user.home", ".");
+        String mcDir = ".minecraft";
         if (OS.CURRENT == OS.WINDOWS && System.getenv("APPDATA") != null)
             return new File(System.getenv("APPDATA"), mcDir);
         else if (OS.CURRENT == OS.MACOS)

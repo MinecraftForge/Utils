@@ -5,7 +5,6 @@
 package net.minecraftforge.util.file;
 
 import net.minecraftforge.srgutils.IMappingFile;
-import net.minecraftforge.util.logging.SimpleLogger;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayOutputStream;
