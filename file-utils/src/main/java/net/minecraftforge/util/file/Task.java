@@ -4,7 +4,7 @@
  */
 package net.minecraftforge.util.file;
 
-import net.minecraftforge.util.logging.Log;
+import net.minecraftforge.util.logging.SimpleLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -52,13 +52,15 @@ public interface Task extends Supplier<File> {
         @Override
         public File execute() {
             if (this.file == null) {
+                var log = SimpleLogger.getGlobal();
+
                 for (var dep : deps)
                     dep.execute();
-                Log.log(name);
-                Log.push();
+                log.info(name);
+                log.push();
                 this.file = supplier.get();
-                Log.debug("-> " + this.file.toString());
-                Log.pop();
+                log.debug("-> " + this.file.toString());
+                log.pop();
             }
             return this.file;
         }

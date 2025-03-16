@@ -14,12 +14,13 @@ dependencies {
 }
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
     withSourcesJar()
 }
 
 jar {
     manifest {
+        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.logging')
         attributes([
             'Specification-Title':   'Logging Utils',
             'Specification-Vendor':  'Forge Development LLC',
