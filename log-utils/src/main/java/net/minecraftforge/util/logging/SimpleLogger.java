@@ -6,6 +6,8 @@ package net.minecraftforge.util.logging;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.function.Consumer;
 
 /**
@@ -39,6 +41,12 @@ public interface SimpleLogger {
 
     void log(Level level, String message);
 
+    default void log(Level level, Consumer<? super PrintStream> message) {
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        message.accept(new PrintStream(os));
+        this.log(level, os.toString());
+    }
+
     enum Level {
         TRACE, DEBUG, QUIET, INFO, WARN, ERROR, FATAL
     }
@@ -47,7 +55,15 @@ public interface SimpleLogger {
         log(Level.TRACE, message);
     }
 
+    default void trace(Consumer<? super PrintStream> message) {
+        log(Level.TRACE, message);
+    }
+
     default void debug(String message) {
+        log(Level.DEBUG, message);
+    }
+
+    default void debug(Consumer<? super PrintStream> message) {
         log(Level.DEBUG, message);
     }
 
@@ -55,7 +71,15 @@ public interface SimpleLogger {
         log(Level.QUIET, message);
     }
 
+    default void quiet(Consumer<? super PrintStream> message) {
+        log(Level.QUIET, message);
+    }
+
     default void info(String message) {
+        log(Level.INFO, message);
+    }
+
+    default void info(Consumer<? super PrintStream> message) {
         log(Level.INFO, message);
     }
 
@@ -63,11 +87,23 @@ public interface SimpleLogger {
         log(Level.WARN, message);
     }
 
+    default void warn(Consumer<? super PrintStream> message) {
+        log(Level.WARN, message);
+    }
+
     default void error(String message) {
         log(Level.ERROR, message);
     }
 
+    default void error(Consumer<? super PrintStream> message) {
+        log(Level.ERROR, message);
+    }
+
     default void fatal(String message) {
+        log(Level.FATAL, message);
+    }
+
+    default void fatal(Consumer<? super PrintStream> message) {
         log(Level.FATAL, message);
     }
 
