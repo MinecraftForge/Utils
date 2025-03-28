@@ -13,3 +13,7 @@ tag = "log"
 [data]
 path = "json-data-utils"
 tag = "json-data"
+
+[download]
+path = "download-utils"
+tag = "download"

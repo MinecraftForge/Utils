@@ -4,7 +4,7 @@ plugins {
 
 rootProject.name = 'Utils'
 
-include 'hash-utils', 'json-data-utils', 'file-utils', 'log-utils'
+include 'hash-utils', 'json-data-utils', 'file-utils', 'log-utils', 'download-utils'
 
 dependencyResolutionManagement {
     versionCatalogs {
