@@ -40,7 +40,7 @@ public interface SimpleLogger {
     void log(Level level, String message);
 
     enum Level {
-        TRACE, DEBUG, INFO, WARN, ERROR, FATAL
+        TRACE, DEBUG, QUIET, INFO, WARN, ERROR, FATAL
     }
 
     default void trace(String message) {
@@ -49,6 +49,10 @@ public interface SimpleLogger {
 
     default void debug(String message) {
         log(Level.DEBUG, message);
+    }
+
+    default void quiet(String message) {
+        log(Level.QUIET, message);
     }
 
     default void info(String message) {
@@ -106,18 +110,22 @@ public interface SimpleLogger {
 
     final class SysOut extends Consuming {
         private final boolean debug;
+        private final boolean verbose;
 
         public SysOut() {
-            this(false);
+            this(false, false);
         }
 
-        public SysOut(boolean debug) {
+        public SysOut(boolean debug, boolean verbose) {
             this.debug = debug;
+            this.verbose = verbose;
         }
 
         @Override
         protected @Nullable Consumer<String> getOut(Level level) {
             if (!this.debug && (level == Level.TRACE || level == Level.DEBUG))
+                return null;
+            else if (!this.verbose && level == Level.QUIET)
                 return null;
             else if (level == Level.INFO)
                 return System.out::println;
