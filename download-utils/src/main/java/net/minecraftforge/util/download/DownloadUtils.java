@@ -165,7 +165,7 @@ public final class DownloadUtils {
      */
     public static boolean downloadFile(File target, String url) {
         try {
-            Files.createDirectories(target.toPath());
+            Files.createDirectories(target.toPath().getParent());
             Log.quiet("Downloading " + url);
 
             URLConnection connection = getConnection(url);
