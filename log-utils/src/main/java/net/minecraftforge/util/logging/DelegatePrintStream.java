@@ -43,7 +43,7 @@ final class DelegatePrintStream extends PrintStream {
         this.trouble = true;
     }
 
-    @Override
+    @SuppressWarnings({"unused", "ProtectedMemberInFinalClass", "override", "RedundantSuppression"})
     protected void clearError() {
         this.trouble = false;
     }

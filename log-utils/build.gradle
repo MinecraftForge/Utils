@@ -8,11 +8,6 @@ plugins {
 
 apply from: rootProject.file('build_shared.gradle')
 
-dependencies {
-    // Static Analysis
-    compileOnly libs.nulls
-}
-
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(6)
     withSourcesJar()

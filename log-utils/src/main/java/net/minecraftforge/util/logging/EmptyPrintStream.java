@@ -19,7 +19,7 @@ final class EmptyPrintStream extends PrintStream {
     @Override public void close() { }
     @Override public boolean checkError() { return false; }
     @Override protected void setError() { }
-    @Override protected void clearError() { }
+    @SuppressWarnings({"unused", "ProtectedMemberInFinalClass", "override", "RedundantSuppression"}) protected void clearError() { }
     @Override public void write(int b) { }
     @Override public void write(byte[] b) { }
     @Override public void write(byte[] buf, int off, int len) { }
