@@ -28,6 +28,11 @@ jar {
     }
 }
 
+compileJava {
+    // Java 6 exclusive javac argument that ignores "internal and proprietary usage" warnings for UnsafeHacks
+    options.forkOptions.jvmArgs += '-XDignore.symbol.file'
+}
+
 publishing {
     publications.register('mavenJava', MavenPublication).configure {
         artifactId = project.name
