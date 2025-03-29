@@ -10,10 +10,9 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import net.minecraftforge.util.logging.SimpleLogger;
+import net.minecraftforge.util.logging.Log;
 import org.jetbrains.annotations.Nullable;
 
-import javax.net.ssl.SSLHandshakeException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -77,8 +76,8 @@ public final class DownloadUtils {
             uri = new URI(address);
             url = uri.toURL();
         } catch (MalformedURLException | URISyntaxException e) {
-            SimpleLogger.getGlobal().error("Malformed URL: " + address);
-            SimpleLogger.getGlobal().error(e::printStackTrace);
+            Log.error("Malformed URL: " + address);
+            e.printStackTrace(Log.ERROR);
             return null;
         }
 
@@ -103,7 +102,7 @@ public final class DownloadUtils {
                         String location = hcon.getHeaderField("Location");
                         hcon.disconnect();
                         if (x == max_redirects - 1) {
-                            SimpleLogger.getGlobal().error("Invalid number of redirects: " + location);
+                            Log.error("Invalid number of redirects: " + location);
                             return null;
                         } else {
                             //System.out.println("Following redirect: " + location);
@@ -122,8 +121,8 @@ public final class DownloadUtils {
             }
             return con;
         } catch (IOException e) {
-            SimpleLogger.getGlobal().error("Failed to establish connection to " + address);
-            SimpleLogger.getGlobal().error(e::printStackTrace);
+            Log.error("Failed to establish connection to " + address);
+            e.printStackTrace(Log.ERROR);
             return null;
         }
     }
@@ -151,8 +150,8 @@ public final class DownloadUtils {
                 }
             }
         } catch (IOException e) {
-            SimpleLogger.getGlobal().warn("Failed to download " + url);
-            SimpleLogger.getGlobal().warn(e::printStackTrace);
+            Log.warn("Failed to download " + url);
+            e.printStackTrace(Log.WARN);
         }
         return null;
     }
@@ -166,8 +165,8 @@ public final class DownloadUtils {
      */
     public static boolean downloadFile(File target, String url) {
         try {
-            ensureParent(target);
-            SimpleLogger.getGlobal().quiet("Downloading " + url);
+            Files.createDirectories(target.toPath());
+            Log.quiet("Downloading " + url);
 
             URLConnection connection = getConnection(url);
             if (connection != null) {
@@ -175,15 +174,9 @@ public final class DownloadUtils {
                 return true;
             }
         } catch (IOException e) {
-            SimpleLogger.getGlobal().warn("Failed to download " + url);
-            SimpleLogger.getGlobal().warn(e::printStackTrace);
+            Log.warn("Failed to download " + url);
+            e.printStackTrace(Log.WARN);
         }
         return false;
-    }
-
-    private static void ensureParent(File path) {
-        File parent = path.getAbsoluteFile().getParentFile();
-        if (parent != null && !parent.exists())
-            parent.mkdirs();
     }
 }
