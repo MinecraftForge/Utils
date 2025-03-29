@@ -21,6 +21,8 @@ public class MinecraftVersion {
     public Map<String, Download> downloads;
     /** The required libraries. */
     public Library[] libraries;
+    /** The asset index reference. */
+    public AssetsIndexInfo assetIndex;
 
     public List<Lib> getLibs() {
         List<Lib> libs = new ArrayList<>();
@@ -117,5 +119,13 @@ public class MinecraftVersion {
      */
     public @Nullable Download getDownload(String key) {
         return this.downloads == null ? null : this.downloads.get(key);
+    }
+
+    public static class AssetsIndexInfo {
+        public String id;
+        public String sha1;
+        public int size;
+        public int totalSize;
+        public String url;
     }
 }

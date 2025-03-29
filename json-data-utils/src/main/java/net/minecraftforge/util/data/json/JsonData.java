@@ -43,20 +43,93 @@ public class JsonData {
         return fromJson(data, MinecraftVersion.class);
     }
 
-    private static <T> T fromJson(File file, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    public static AssetsIndex assetsIndex(File file) {
+        return fromJson(file, AssetsIndex.class);
+    }
+    public static AssetsIndex assetsIndex(InputStream stream) {
+        return fromJson(stream, AssetsIndex.class);
+    }
+    public static AssetsIndex assetsIndex(byte[] data) {
+        return fromJson(data, AssetsIndex.class);
+    }
+
+    public static int configSpec(File file) {
+        return fromJson(file, Config.class).spec;
+    }
+    public static int configSpec(InputStream stream) {
+        return fromJson(stream, Config.class).spec;
+    }
+    public static int configSpec(byte[] data) {
+        return fromJson(data, Config.class).spec;
+    }
+
+    public static PatcherConfig patcherConfig(File file) {
+        return fromJson(file, PatcherConfig.class);
+    }
+    public static PatcherConfig patcherConfig(InputStream stream) {
+        return fromJson(stream, PatcherConfig.class);
+    }
+    public static PatcherConfig patcherConfig(byte[] data) {
+        return fromJson(data, PatcherConfig.class);
+    }
+
+    public static PatcherConfig.V2 patcherConfigV2(File file) {
+        return fromJson(file, PatcherConfig.V2.class);
+    }
+    public static PatcherConfig.V2 patcherConfigV2(InputStream stream) {
+        return fromJson(stream, PatcherConfig.V2.class);
+    }
+    public static PatcherConfig.V2 patcherConfigV2(byte[] data) {
+        return fromJson(data, PatcherConfig.V2.class);
+    }
+
+    public static MCPConfig mcpConfig(File file) {
+        return fromJson(file, MCPConfig.class);
+    }
+    public static MCPConfig mcpConfig(InputStream stream) {
+        return fromJson(stream, MCPConfig.class);
+    }
+    public static MCPConfig mcpConfig(byte[] data) {
+        return fromJson(data, MCPConfig.class);
+    }
+
+    public static MCPConfig.V2 mcpConfigV2(File file) {
+        return fromJson(file, MCPConfig.V2.class);
+    }
+    public static MCPConfig.V2 mcpConfigV2(InputStream stream) {
+        return fromJson(stream, MCPConfig.V2.class);
+    }
+    public static MCPConfig.V2 mcpConfigV2(byte[] data) {
+        return fromJson(data, MCPConfig.V2.class);
+    }
+
+    public static PromosSlim promosSlim(File file) {
+        return fromJson(file, PromosSlim.class);
+    }
+    public static PromosSlim promosSlim(InputStream stream) {
+        return fromJson(stream, PromosSlim.class);
+    }
+    public static PromosSlim promosSlim(byte[] data) {
+        return fromJson(data, PromosSlim.class);
+    }
+    public static PromosSlim promosSlim(String data) {
+        return fromJson(data, PromosSlim.class);
+    }
+
+    protected static <T> T fromJson(File file, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         try (FileInputStream stream = new FileInputStream(file)) {
             return fromJson(stream, classOfT);
         } catch (IOException e) {
             throw new JsonIOException(e);
         }
     }
-    private static <T> T fromJson(byte[] data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    protected static <T> T fromJson(byte[] data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return fromJson(new ByteArrayInputStream(data), classOfT);
     }
-    private static <T> T fromJson(InputStream stream, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    protected static <T> T fromJson(InputStream stream, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return GSON.fromJson(new InputStreamReader(stream), classOfT);
     }
-    private static <T> T fromJson(String data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    protected static <T> T fromJson(String data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return GSON.fromJson(data, classOfT);
     }
 
