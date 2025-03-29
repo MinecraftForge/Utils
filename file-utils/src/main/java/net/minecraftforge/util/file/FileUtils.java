@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +37,9 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 // TODO remove Jar-related methods? some of them needs SrgUtils
-public class FileUtils {
+public final class FileUtils {
+    private FileUtils() { }
+
     public static final long ZIPTIME = 628041600000L;
     public static final TimeZone GMT = TimeZone.getTimeZone("GMT");
 
@@ -262,6 +265,17 @@ public class FileUtils {
         return jar;
     }
 
+    public static void makeZip(File inputDir, File zip) {
+        try (var zos = new ZipOutputStream(new FileOutputStream(zip))) {
+            for (var file : listFiles(inputDir)) {
+                var entryName = inputDir.toPath().relativize(file.toPath()).toString();
+                writeEntry(zos, new Info(entryName, file));
+            }
+        } catch (IOException e) {
+            sneak(e);
+        }
+    }
+
     private static void makeJarInternal(File dir, List<File> classes, JarOutputStream jos) throws IOException {
         for (var file : classes) {
             String entryName = file.getAbsoluteFile().toString().substring(dir.getAbsolutePath().length() + 1).replace('\\', '/');
@@ -275,7 +289,17 @@ public class FileUtils {
         }
     }
 
-    private record Info(String name, Supplier<InputStream> stream) {}
+    private record Info(String name, Supplier<InputStream> stream) {
+        private Info(String name, File file) {
+            this(name, () -> {
+                try {
+                    return new FileInputStream(file);
+                } catch (FileNotFoundException e) {
+                    return sneak(e);
+                }
+            });
+        }
+    }
 
     /** @see <a href="https://github.com/MinecraftForge/ForgeGradle/blob/efa70580314c88192486e4ab089f4b970d5b080c/src/common/java/net/minecraftforge/gradle/common/util/MinecraftRepo.java#L323-L327">MinecraftRepo.splitJar(...) in ForgeGradle 6</a> */
     public static void splitJar(File raw, File mappings, File output, boolean slim, boolean stable) throws IOException {
