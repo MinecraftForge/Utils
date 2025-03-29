@@ -1,10 +1,8 @@
 /*
- * Copyright (c) Forge Development LLC and contributors
+ * Copyright (c) Forge Development LLC
  * SPDX-License-Identifier: LGPL-2.1-only
  */
 package net.minecraftforge.util.data.json;
-
-import net.minecraftforge.mcmaven.impl.util.Artifact;
 
 import java.util.Collections;
 import java.util.List;

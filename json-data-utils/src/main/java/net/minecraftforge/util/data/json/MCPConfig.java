@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Forge Development LLC and contributors
+ * Copyright (c) Forge Development LLC
  * SPDX-License-Identifier: LGPL-2.1-only
  */
 package net.minecraftforge.util.data.json;
@@ -36,17 +36,17 @@ public class MCPConfig extends Config {
     }
 
     public List<Map<String, String>> getSteps(String side) {
-        var ret = this.steps == null ? null : this.steps.get(side);
+        List<Map<String, String>> ret = this.steps == null ? null : this.steps.get(side);
         return ret == null ? Collections.emptyList() : ret;
     }
 
-    public record Function(
-        String version,
-        String repo,
-        List<String> args,
-        List<String> jvmargs,
-        Integer java_version
-    ) {
+    public static final class Function {
+        public String version;
+        public String repo;
+        public List<String> args;
+        public List<String> jvmargs;
+        public Integer java_version;
+
         public int getJavaVersion(V2 parent) {
             return java_version == null ? parent.java_target : java_version;
         }

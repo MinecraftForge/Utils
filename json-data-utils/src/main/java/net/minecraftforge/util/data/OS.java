@@ -4,7 +4,6 @@
  */
 package net.minecraftforge.util.data;
 
-import net.minecraftforge.util.logging.SimpleLogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
