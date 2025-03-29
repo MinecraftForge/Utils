@@ -4,6 +4,7 @@
  */
 package net.minecraftforge.util.data;
 
+import net.minecraftforge.util.logging.SimpleLogger;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -62,6 +63,7 @@ public enum OS {
             if (value.key.equals(key))
                 return value;
         }
+
         return null;
     }
 
@@ -78,23 +80,24 @@ public enum OS {
         String prop = System.getProperty("os.name").toLowerCase(Locale.ENGLISH);
         for (OS os : $values) {
             for (String key : os.names) {
-                if (prop.contains(key)) {
-                    if (os == LINUX) {
-                        try {
-                            for (String line : Files.readAllLines(Paths.get("/etc/os-release"), StandardCharsets.UTF_8)) {
-                                line = line.toLowerCase(Locale.ENGLISH);
-                                if (line.startsWith("name=") && line.contains("alpine")) {
-                                    return ALPINE;
-                                }
-                            }
-                        } catch (IOException ignored) {
-                            // TODO log that we can't read /etc/os-release
-                        }
-                    }
-                    return os;
-                }
+                if (!prop.contains(key)) continue;
+
+                return os == LINUX ? getCurrentLinux() : os;
             }
         }
         return UNKNOWN;
+    }
+
+    private static OS getCurrentLinux() {
+        try {
+            for (String line : Files.readAllLines(Paths.get("/etc/os-release"), StandardCharsets.UTF_8)) {
+                line = line.toLowerCase(Locale.ENGLISH);
+                if (line.startsWith("name=") && line.contains("alpine")) {
+                    return ALPINE;
+                }
+            }
+        } catch (IOException ignored) { }
+
+        return LINUX;
     }
 }
