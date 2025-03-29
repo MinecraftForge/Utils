@@ -23,26 +23,6 @@ public class JsonData {
             .setPrettyPrinting()
             .create();
 
-    public static LauncherManifest launcherManifest(File file) {
-        return fromJson(file, LauncherManifest.class);
-    }
-    public static LauncherManifest launcherManifest(InputStream stream) {
-        return fromJson(stream, LauncherManifest.class);
-    }
-    public static LauncherManifest launcherManifest(byte[] data) {
-        return fromJson(data, LauncherManifest.class);
-    }
-
-    public static MinecraftVersion minecraftVersion(File file) {
-        return fromJson(file, MinecraftVersion.class);
-    }
-    public static MinecraftVersion minecraftVersion(InputStream stream) {
-        return fromJson(stream, MinecraftVersion.class);
-    }
-    public static MinecraftVersion minecraftVersion(byte[] data) {
-        return fromJson(data, MinecraftVersion.class);
-    }
-
     public static AssetsIndex assetsIndex(File file) {
         return fromJson(file, AssetsIndex.class);
     }
@@ -63,24 +43,14 @@ public class JsonData {
         return fromJson(data, Config.class).spec;
     }
 
-    public static PatcherConfig patcherConfig(File file) {
-        return fromJson(file, PatcherConfig.class);
+    public static LauncherManifest launcherManifest(File file) {
+        return fromJson(file, LauncherManifest.class);
     }
-    public static PatcherConfig patcherConfig(InputStream stream) {
-        return fromJson(stream, PatcherConfig.class);
+    public static LauncherManifest launcherManifest(InputStream stream) {
+        return fromJson(stream, LauncherManifest.class);
     }
-    public static PatcherConfig patcherConfig(byte[] data) {
-        return fromJson(data, PatcherConfig.class);
-    }
-
-    public static PatcherConfig.V2 patcherConfigV2(File file) {
-        return fromJson(file, PatcherConfig.V2.class);
-    }
-    public static PatcherConfig.V2 patcherConfigV2(InputStream stream) {
-        return fromJson(stream, PatcherConfig.V2.class);
-    }
-    public static PatcherConfig.V2 patcherConfigV2(byte[] data) {
-        return fromJson(data, PatcherConfig.V2.class);
+    public static LauncherManifest launcherManifest(byte[] data) {
+        return fromJson(data, LauncherManifest.class);
     }
 
     public static MCPConfig mcpConfig(File file) {
@@ -103,6 +73,36 @@ public class JsonData {
         return fromJson(data, MCPConfig.V2.class);
     }
 
+    public static MinecraftVersion minecraftVersion(File file) {
+        return fromJson(file, MinecraftVersion.class);
+    }
+    public static MinecraftVersion minecraftVersion(InputStream stream) {
+        return fromJson(stream, MinecraftVersion.class);
+    }
+    public static MinecraftVersion minecraftVersion(byte[] data) {
+        return fromJson(data, MinecraftVersion.class);
+    }
+
+    public static PatcherConfig patcherConfig(File file) {
+        return fromJson(file, PatcherConfig.class);
+    }
+    public static PatcherConfig patcherConfig(InputStream stream) {
+        return fromJson(stream, PatcherConfig.class);
+    }
+    public static PatcherConfig patcherConfig(byte[] data) {
+        return fromJson(data, PatcherConfig.class);
+    }
+
+    public static PatcherConfig.V2 patcherConfigV2(File file) {
+        return fromJson(file, PatcherConfig.V2.class);
+    }
+    public static PatcherConfig.V2 patcherConfigV2(InputStream stream) {
+        return fromJson(stream, PatcherConfig.V2.class);
+    }
+    public static PatcherConfig.V2 patcherConfigV2(byte[] data) {
+        return fromJson(data, PatcherConfig.V2.class);
+    }
+
     public static PromosSlim promosSlim(File file) {
         return fromJson(file, PromosSlim.class);
     }
@@ -114,6 +114,19 @@ public class JsonData {
     }
     public static PromosSlim promosSlim(String data) {
         return fromJson(data, PromosSlim.class);
+    }
+
+    public static RunConfig runConfig(File file) {
+        return fromJson(file, RunConfig.class);
+    }
+    public static RunConfig runConfig(InputStream stream) {
+        return fromJson(stream, RunConfig.class);
+    }
+    public static RunConfig runConfig(byte[] data) {
+        return fromJson(data, RunConfig.class);
+    }
+    public static RunConfig runConfig(String data) {
+        return fromJson(data, RunConfig.class);
     }
 
     protected static <T> T fromJson(File file, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
