@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -143,6 +144,23 @@ public class JsonData {
         return GSON.fromJson(new InputStreamReader(stream), classOfT);
     }
     public static <T> T fromJson(String data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+        return GSON.fromJson(data, classOfT);
+    }
+
+    public static <T> T fromJson(File file, TypeToken<T> classOfT) throws JsonSyntaxException, JsonIOException {
+        try (FileInputStream stream = new FileInputStream(file)) {
+            return fromJson(stream, classOfT);
+        } catch (IOException e) {
+            throw new JsonIOException(e);
+        }
+    }
+    public static <T> T fromJson(byte[] data, TypeToken<T> classOfT) throws JsonSyntaxException, JsonIOException {
+        return fromJson(new ByteArrayInputStream(data), classOfT);
+    }
+    public static <T> T fromJson(InputStream stream, TypeToken<T> classOfT) throws JsonSyntaxException, JsonIOException {
+        return GSON.fromJson(new InputStreamReader(stream), classOfT);
+    }
+    public static <T> T fromJson(String data, TypeToken<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return GSON.fromJson(data, classOfT);
     }
 
