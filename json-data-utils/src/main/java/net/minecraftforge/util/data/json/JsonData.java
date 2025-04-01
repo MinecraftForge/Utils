@@ -129,20 +129,20 @@ public class JsonData {
         return fromJson(data, RunConfig.class);
     }
 
-    protected static <T> T fromJson(File file, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    public static <T> T fromJson(File file, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         try (FileInputStream stream = new FileInputStream(file)) {
             return fromJson(stream, classOfT);
         } catch (IOException e) {
             throw new JsonIOException(e);
         }
     }
-    protected static <T> T fromJson(byte[] data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    public static <T> T fromJson(byte[] data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return fromJson(new ByteArrayInputStream(data), classOfT);
     }
-    protected static <T> T fromJson(InputStream stream, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    public static <T> T fromJson(InputStream stream, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return GSON.fromJson(new InputStreamReader(stream), classOfT);
     }
-    protected static <T> T fromJson(String data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
+    public static <T> T fromJson(String data, Class<T> classOfT) throws JsonSyntaxException, JsonIOException {
         return GSON.fromJson(data, classOfT);
     }
 
