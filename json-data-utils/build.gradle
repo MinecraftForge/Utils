@@ -9,7 +9,7 @@ plugins {
 apply from: rootProject.file('build_shared.gradle')
 
 dependencies {
-    implementation libs.gson
+    api libs.gson
 
     // Static Analysis
     compileOnly libs.nulls
