@@ -58,8 +58,8 @@ public final class Log {
     private static byte indent = 0;
 
     /** Pushes the current indentation level up by one. */
-    public static void push() {
-        indent++;
+    public static int push() {
+        return ++indent;
     }
 
     /**
@@ -70,6 +70,13 @@ public final class Log {
     public static void pop() {
         if (--indent < 0)
             throw new IllegalStateException("Cannot pop logger below 0");
+    }
+
+    public static void setIndent(byte indent) {
+        if (indent < 0)
+            throw new IllegalStateException("Cannot pop logger below 0");
+
+        Log.indent = indent;
     }
 
     static String getIndentation() {
