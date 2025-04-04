@@ -17,15 +17,15 @@ import java.util.Locale;
  * Enum representing the operating system.
  */
 public enum OS {
-    AIX    ("aix",          "aix"),
+    AIX    ("aix"),
     /** @apiNote When working with Minecraft natives, this will be treated as {@link #LINUX}. */
     ALPINE ("apline_linux", "alpine"),
-    LINUX  ("linux",        "linux", "unix"),
+    LINUX  ("linux",        "unix"),
     /** @apiNote When working with Minecraft natives, this will be treated as {@link #LINUX}. */
     MUSL   ("linux_musl",   "musl"),
     /** @apiNote When working with Minecraft natives, this is primarily referred to as {@code osx}. */
     MACOS  ("macos",        "mac", "osx", "darwin"),
-    QNX    ("qnx",          "qnx"),
+    QNX    ("qnx"),
     SOLARIS("solaris",      "sunos"),
     WINDOWS("windows",      "win"),
     UNKNOWN("unknown");
@@ -37,8 +37,8 @@ public enum OS {
     private final String key;
     private final String[] names;
 
-    private OS(String key, String... names) {
-        this.key = key;
+    OS(String... names) {
+        this.key = names[0];
         this.names = names;
     }
 
@@ -61,6 +61,17 @@ public enum OS {
         for (OS value : $values) {
             if (value.key.equals(key))
                 return value;
+        }
+
+        return null;
+    }
+
+    public static @Nullable OS byName(String name) {
+        for (OS value : $values) {
+            for (String n : value.names) {
+                if (n.equals(name))
+                    return value;
+            }
         }
 
         return null;
