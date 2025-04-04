@@ -9,7 +9,12 @@ import java.io.PrintStream;
 import java.util.Locale;
 
 class DelegatePrintStream extends PrintStream {
-    static final PrintStream EMPTY = new DelegatePrintStream(null, System.err) {
+    static final PrintStream EMPTY = new EmptyPrintStream();
+    private static final class EmptyPrintStream extends DelegatePrintStream {
+        EmptyPrintStream() {
+            super(null, System.err);
+        }
+
         @Override
         boolean isEnabled() {
             return false;
@@ -20,9 +25,9 @@ class DelegatePrintStream extends PrintStream {
             return false;
         }
 
-        @SuppressWarnings({"unused", "ProtectedMemberInFinalClass", "override", "RedundantSuppression"})
+        @SuppressWarnings({"unused", "override", "Since15"})
         protected void clearError() { }
-    };
+    }
 
     private final Log.Level level;
     private boolean shouldIndent;

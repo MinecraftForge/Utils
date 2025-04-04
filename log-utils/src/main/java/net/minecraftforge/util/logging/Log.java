@@ -32,6 +32,7 @@ public final class Log {
     /** The lowest level that should be logged. If {@code null}, all logging is completely disabled. */
     public static Level enabled = Level.INFO;
 
+    @SuppressWarnings({"unchecked", "rawtypes"}) // Java 5 restrictions
     private static final EnumMap<Level, PrintStream> STREAMS = new EnumMap(Level.class);
 
     /** The stream used for {@link Level#DEBUG}. */
