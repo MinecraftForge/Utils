@@ -34,7 +34,8 @@ public enum OS {
     /** The operating system that this tool is being run on. */
     public static final OS CURRENT = getCurrent();
 
-    private final String key;
+    /** The primary name, and enum key, of the operating system. */
+    public final String key;
     private final String[] names;
 
     OS(String... names) {
@@ -43,30 +44,21 @@ public enum OS {
     }
 
     /**
-     * The primary name, and enum key, of the operating system.
-     *
-     * @return The primary name
-     */
-    public String key() {
-        return this.key;
-    }
-
-    /**
      * Returns the OS enum for the given key.
      *
      * @param key The key to search for
      * @return The OS enum, or null if not found
      */
-    public static @Nullable OS byKey(String key) {
+    public static OS byKey(@Nullable String key) {
         for (OS value : $values) {
             if (value.key.equals(key))
                 return value;
         }
 
-        return null;
+        return UNKNOWN;
     }
 
-    public static @Nullable OS byName(String name) {
+    public static OS byName(@Nullable String name) {
         for (OS value : $values) {
             for (String n : value.names) {
                 if (n.equals(name))
@@ -74,7 +66,7 @@ public enum OS {
             }
         }
 
-        return null;
+        return UNKNOWN;
     }
 
     /**
@@ -95,6 +87,7 @@ public enum OS {
                 return os == LINUX ? getCurrentLinux() : os;
             }
         }
+
         return UNKNOWN;
     }
 
