@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -144,7 +145,7 @@ public final class FileUtils {
         mergeJars(output, stripSignatures, null, files);
     }
 
-    public static void mergeJars(File output, boolean stripSignatures, BiFunction<File, String, Boolean> filter, File... files) throws IOException {
+    public static void mergeJars(File output, boolean stripSignatures, BiPredicate<File, String> filter, File... files) throws IOException {
         if (output.exists())
             output.delete();
         ensureParent(output);
@@ -167,7 +168,7 @@ public final class FileUtils {
                     for (var file : FileUtils.listFiles(input)) {
                         var name = file.getAbsolutePath().substring(prefix.length()).replace('\\', '/');
 
-                        if (filter != null && !filter.apply(input, name))
+                        if (filter != null && !filter.test(input, name))
                             continue;
 
                         tmp.add(new Info(name, () -> {
@@ -185,7 +186,7 @@ public final class FileUtils {
                         var entry = itr.nextElement();
                         var name = entry.getName();
 
-                        if (entry.isDirectory() || (filter != null && !filter.apply(input, name)))
+                        if (entry.isDirectory() || (filter != null && !filter.test(input, name)))
                             continue;
 
                         tmp.add(new Info(name, () -> {
