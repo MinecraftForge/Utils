@@ -4,6 +4,8 @@
  */
 package net.minecraftforge.util.hash;
 
+import net.minecraftforge.util.logging.Log;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -90,7 +92,7 @@ public class HashStore {
                 oldHashes.put(split[0], split[1]);
             }
         } catch (IOException e) {
-            System.out.println("Failed to read cache file. It will be ignored. : " + e.getMessage());
+            Log.warn("Failed to read cache file. It will be ignored. : " + e.getMessage());
         }
 
         return this;

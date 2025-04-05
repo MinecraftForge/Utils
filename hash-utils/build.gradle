@@ -9,6 +9,8 @@ plugins {
 apply from: rootProject.file('build_shared.gradle')
 
 dependencies {
+    implementation project(':log-utils')
+
     // Static Analysis
     compileOnly libs.nulls
 }

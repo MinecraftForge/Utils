@@ -105,7 +105,7 @@ public final class DownloadUtils {
                             Log.error("Invalid number of redirects: " + location);
                             return null;
                         } else {
-                            //System.out.println("Following redirect: " + location);
+                            Log.debug("Following redirect: " + location);
                             uri = uri.resolve(location);
                             url = uri.toURL();
                         }

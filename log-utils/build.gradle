@@ -21,11 +21,11 @@ jar {
     manifest {
         attributes('Automatic-Module-Name': 'net.minecraftforge.utils.logging')
         attributes([
-            'Specification-Title':   'Logging Utils',
-            'Specification-Vendor':  'Forge Development LLC',
-            'Specification-Version':  gitversion.version.info.tag,
-            'Implementation-Title':  'Logging Utils',
-            'Implementation-Vendor': 'Forge Development LLC',
+            'Specification-Title'   : 'Logging Utils',
+            'Specification-Vendor'  : 'Forge Development LLC',
+            'Specification-Version' : gitversion.version.info.tag,
+            'Implementation-Title'  : 'Logging Utils',
+            'Implementation-Vendor' : 'Forge Development LLC',
             'Implementation-Version': project.version
         ] as LinkedHashMap, 'net/minecraftforge/util/logging/')
     }
