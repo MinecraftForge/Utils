@@ -5,6 +5,8 @@
 package net.minecraftforge.util.hash;
 
 import net.minecraftforge.util.logging.Log;
+import org.jetbrains.annotations.NotNullByDefault;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,16 +16,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static net.minecraftforge.util.hash.HashUtils.sneak;
 
+@NotNullByDefault
 public class HashStore {
-    private final HashFunction HASH = HashFunction.SHA1;
+    private static final HashFunction HASH = HashFunction.SHA1;
 
     private final String root;
     private final Map<String, String> oldHashes = new HashMap<>();
     private final Map<String, String> newHashes = new HashMap<>();
-    private File target;
+    private @Nullable File target;
 
     public static HashStore fromFile(File path) {
         File parent = path.getAbsoluteFile().getParentFile();
@@ -37,11 +41,15 @@ public class HashStore {
     }
 
     public HashStore() {
-        this.root = "";
+        this("");
     }
 
     public HashStore(File root) {
-        this.root = root.getAbsolutePath();
+        this(root.getAbsolutePath());
+    }
+
+    private HashStore(String root) {
+        this.root = root;
     }
 
     public boolean areSame(File... files) {
@@ -103,16 +111,20 @@ public class HashStore {
     }
 
     public HashStore add(String key, String data) {
-        newHashes.put(key, HASH.hash(data));
+        if (!data.isEmpty())
+            newHashes.put(Objects.requireNonNull(key), HASH.hash(data));
         return this;
     }
 
     public HashStore add(String key, byte[] data) {
-        newHashes.put(key, HASH.hash(data));
+        if (data.length > 0)
+            this.newHashes.put(Objects.requireNonNull(key), HASH.hash(data));
         return this;
     }
 
-    public HashStore add(String key, File file) {
+    public HashStore add(@Nullable String key, File file) {
+        if (!file.exists()) return this;
+
         try {
             if (key == null)
                 key = getPath(file);
@@ -121,10 +133,10 @@ public class HashStore {
                 String prefix = getPath(file);
                 for (File f : HashUtils.listFiles(file)) {
                     String suffix = getPath(f).substring(prefix.length());
-                    newHashes.put(key + " - " + suffix, HASH.hash(f));
+                    this.newHashes.put(key + " - " + suffix, HASH.hash(f));
                 }
             } else {
-                newHashes.put(key, HASH.hash(file));
+                this.newHashes.put(key, HASH.hash(file));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -150,22 +162,27 @@ public class HashStore {
     }
 
     public boolean isSame() {
-        return oldHashes.equals(newHashes);
+        return this.oldHashes.equals(this.newHashes);
+    }
+
+    /** Clears the new hashes, does not clear the old hashes read from {@link #load(File)}. */
+    public void clear() {
+        this.newHashes.clear();
     }
 
     public void save() {
-        if (target == null)
+        if (this.target == null)
             throw new RuntimeException("HashStore.save() called without load(File) so we dont know where to save it! Use load(File) or save(File)");
-        save(target);
+        save(this.target);
     }
 
     public void save(File file) {
         StringBuilder buf = new StringBuilder();
-        ArrayList<String> keys = new ArrayList<String>(newHashes.keySet());
+        ArrayList<String> keys = new ArrayList<>(this.newHashes.keySet());
         Collections.sort(keys);
 
         for (String key : keys)
-            buf.append(key).append('=').append(newHashes.get(key)).append('\n');
+            buf.append(key).append('=').append(this.newHashes.get(key)).append('\n');
 
         try {
             Files.write(file.toPath(), buf.toString().getBytes(StandardCharsets.UTF_8));
@@ -177,8 +194,8 @@ public class HashStore {
     private String getPath(File file) {
         String path = file.getAbsolutePath();
 
-        if (path.startsWith(root))
-            path = path.substring(root.length());
+        if (path.startsWith(this.root))
+            path = path.substring(this.root.length());
 
         path = path.replace('\\', '/');
 

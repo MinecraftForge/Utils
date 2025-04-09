@@ -13,7 +13,7 @@ import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HashUtils {
+public final class HashUtils {
     /**
      * Gets the hashes of the given file using the given hash functions.
      *
@@ -119,4 +119,6 @@ public class HashUtils {
     static <R, E extends Throwable> R sneak(Throwable t) throws E {
         throw (E)t;
     }
+
+    private HashUtils() { }
 }
