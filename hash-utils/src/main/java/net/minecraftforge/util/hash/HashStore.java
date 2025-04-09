@@ -166,8 +166,9 @@ public class HashStore {
     }
 
     /** Clears the new hashes, does not clear the old hashes read from {@link #load(File)}. */
-    public void clear() {
+    public HashStore clear() {
         this.newHashes.clear();
+        return this;
     }
 
     public void save() {
