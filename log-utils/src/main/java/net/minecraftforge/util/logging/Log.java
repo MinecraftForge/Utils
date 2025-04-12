@@ -101,6 +101,15 @@ public final class Log {
     }
 
     /**
+     * Prints an empty message to the given level, similar to {@link PrintStream#println()}.
+     *
+     * @param level The level to log the message at
+     */
+    public static void log(Level level) {
+        getLog(level).println();
+    }
+
+    /**
      * Logs a message for the given level.
      *
      * @param level   The level to log the message at
@@ -136,6 +145,10 @@ public final class Log {
         DEBUG, QUIET, INFO, WARN, ERROR, FATAL;
     }
 
+    public static void debug() {
+        log(Level.DEBUG);
+    }
+
     public static void debug(Object message) {
         log(Level.DEBUG, message);
     }
@@ -146,6 +159,10 @@ public final class Log {
 
     public static void debug(Object message, Throwable throwable) {
         log(Level.DEBUG, message, throwable);
+    }
+
+    public static void quiet() {
+        log(Level.QUIET);
     }
 
     public static void quiet(Object message) {
@@ -160,6 +177,10 @@ public final class Log {
         log(Level.QUIET, message, throwable);
     }
 
+    public static void info() {
+        log(Level.INFO);
+    }
+
     public static void info(Object message) {
         log(Level.INFO, message);
     }
@@ -170,6 +191,10 @@ public final class Log {
 
     public static void info(Object message, Throwable throwable) {
         log(Level.INFO, message, throwable);
+    }
+
+    public static void warn() {
+        log(Level.WARN);
     }
 
     public static void warn(Object message) {
@@ -184,6 +209,10 @@ public final class Log {
         log(Level.WARN, message, throwable);
     }
 
+    public static void error() {
+        log(Level.ERROR);
+    }
+
     public static void error(Object message) {
         log(Level.ERROR, message);
     }
@@ -194,6 +223,10 @@ public final class Log {
 
     public static void error(Object message, Throwable throwable) {
         log(Level.ERROR, message, throwable);
+    }
+
+    public static void fatal() {
+        log(Level.FATAL);
     }
 
     public static void fatal(Object message) {
