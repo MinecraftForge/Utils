@@ -110,6 +110,12 @@ public class HashStore {
         return this.target != null && this.target.exists();
     }
 
+    public HashStore addKnown(String key, String data) {
+        if (!data.isEmpty())
+            newHashes.put(Objects.requireNonNull(key), data);
+        return this;
+    }
+
     public HashStore add(String key, String data) {
         if (!data.isEmpty())
             newHashes.put(Objects.requireNonNull(key), HASH.hash(data));
