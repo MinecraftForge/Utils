@@ -2,52 +2,71 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.licenser' version '1.1.1'
-    id 'net.minecraftforge.gradleutils' version '2.4.13'
+    alias libs.plugins.licenser
+    alias libs.plugins.gradleutils
 }
 
-apply from: rootProject.file('build_shared.gradle')
+final projectDisplayName = 'Logging Utils'
+final projectVendor = 'Forge Development LLC'
+description = 'General-purpose logging utilities for Forge-specific projects'
+group = 'net.minecraftforge'
+version = gitversion.tagOffset
+
+println "Version: $version"
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(6)
-    sourceCompatibility = JavaVersion.VERSION_1_5
-    targetCompatibility = JavaVersion.VERSION_1_5
-
+    toolchain.languageVersion = JavaLanguageVersion.of 8
     withSourcesJar()
-    withJavadocJar()
 }
 
-jar {
+dependencies {
+    compileOnly libs.nulls
+}
+
+tasks.named('jar', Jar) {
     manifest {
         attributes('Automatic-Module-Name': 'net.minecraftforge.utils.logging')
         attributes([
-            'Specification-Title'   : 'Logging Utils',
-            'Specification-Vendor'  : 'Forge Development LLC',
-            'Specification-Version' : gitversion.version.info.tag,
-            'Implementation-Title'  : 'Logging Utils',
-            'Implementation-Vendor' : 'Forge Development LLC',
+            'Specification-Title'   : projectDisplayName,
+            'Specification-Vendor'  : projectVendor,
+            'Specification-Version' : gitversion.info.tag,
+            'Implementation-Title'  : projectDisplayName,
+            'Implementation-Vendor' : projectVendor,
             'Implementation-Version': project.version
-        ] as LinkedHashMap, 'net/minecraftforge/util/logging/')
+        ], 'net/minecraftforge/util/logging/')
     }
 }
 
-compileJava {
-    // Java 6 exclusive javac argument that ignores "internal and proprietary usage" warnings for UnsafeHacks
-    options.forkOptions.jvmArgs += '-XDignore.symbol.file'
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+license {
+    header = rootProject.file('LICENSE-header.txt')
+    newLine = false
+    exclude '**/*.properties'
+}
+
+changelog {
+    fromBase()
+    publishAll = false
 }
 
 publishing {
-    publications.register('mavenJava', MavenPublication).configure {
-        artifactId = project.name
+    publications.register('mavenJava', MavenPublication) {
         from components.java
 
+        artifactId = project.name
+
         pom { pom ->
-            name = 'Logging Utils'
-            description = 'General-purpose logging utilities for Forge-specific projects'
+            name = projectDisplayName
+            description = project.description
 
-            gradleutils.pom.gitHubDetails = pom
+            gradleutils.pom.setGitHubDetails pom
 
-            license gradleutils.pom.licenses.LGPLv2_1
+            licenses {
+                license gradleutils.pom.licenses.LGPLv2_1
+            }
 
             developers {
                 developer gradleutils.pom.Developers.LexManos
@@ -55,7 +74,10 @@ publishing {
             }
         }
     }
+
     repositories {
         maven gradleutils.publishingForgeMaven
     }
 }
+
+idea.module { downloadSources = downloadJavadoc = true }

@@ -7,7 +7,6 @@ package net.minecraftforge.util.download;
 import net.minecraftforge.util.logging.Log;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,35 +14,36 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.URLConnection;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
+import java.util.function.Supplier;
 
 public final class DownloadUtils {
-    private static final int TIMEOUT = 5 * 1000;
+    private static final Duration TIMEOUT = Duration.ofSeconds(5);
     private static final int MAX_REDIRECTS = 3;
 
-    private static URLConnection openConnection(URL url) throws IOException {
-        URLConnection con = url.openConnection();
-        con.setConnectTimeout(TIMEOUT);
-        con.setReadTimeout(TIMEOUT);
+    private static final HttpClient CLIENT = HttpClient
+        .newBuilder()
+        .connectTimeout(TIMEOUT)
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build();
 
-        if (con instanceof HttpURLConnection) {
-            HttpURLConnection hcon = (HttpURLConnection) con;
-            hcon.setRequestProperty("User-Agent", "MinecraftForge-Utils");
-            hcon.setRequestProperty("Accept", "application/json");
-            hcon.setInstanceFollowRedirects(false);
-        }
+    private static final HttpRequest.Builder REQUEST_BUILDER = HttpRequest
+        .newBuilder()
+        .timeout(TIMEOUT)
+        .header("User-Agent", "MinecraftForge-Utils")
+        .header("Accept", "application/json");
 
-        return con;
-    }
-
-    private static InputStream connect(String address) throws IOException {
+    private static InputStream connect(String address) throws IOException, InterruptedException {
         URI uri;
         try {
             uri = new URI(address);
@@ -51,21 +51,32 @@ public final class DownloadUtils {
             throw new IOException(e);
         }
 
-        URL url;
-        List<String> redirections = new ArrayList<>();
-        URLConnection con;
+        // if not http, then try a URLConnection. we might be trying to make a file or jar connection.
+        // see jdk.internal.net.http.HttpRequestBuilderImpl#checkUri
+        var scheme = uri.getScheme();
+        if (scheme == null || !(scheme.equalsIgnoreCase("https") || scheme.equalsIgnoreCase("http"))) {
+            return uri.toURL().openStream();
+        }
+
+        var redirections = new ArrayList<String>();
+        HttpResponse<InputStream> con;
         for (int redirects = 0; ; redirects++) {
-            url = uri.toURL();
-            con = openConnection(url);
+            con = CLIENT.send(
+                REQUEST_BUILDER.uri(uri).build(),
+                info -> HttpResponse.BodySubscribers.ofInputStream()
+            );
 
-            if (!(con instanceof HttpURLConnection)) break;
-            HttpURLConnection hcon = (HttpURLConnection) con;
-
-            int res = hcon.getResponseCode();
+            int res = con.statusCode();
             if (res == HttpURLConnection.HTTP_MOVED_PERM || res == HttpURLConnection.HTTP_MOVED_TEMP) {
-                String location = hcon.getHeaderField("Location");
+                var header = con.headers().firstValue("Location");
+                if (header.isEmpty())
+                    throw new IOException(String.format(
+                        "No location header found in redirect response: %s -- previous redirections: [%s]",
+                        uri, String.join(", ", redirections)
+                    ));
+
+                var location = header.get();
                 redirections.add(location);
-                hcon.disconnect();
 
                 if (redirects == MAX_REDIRECTS - 1) {
                     throw new IOException(String.format(
@@ -76,20 +87,14 @@ public final class DownloadUtils {
                     Log.debug("Following redirect: " + location);
                     uri = uri.resolve(location);
                 }
-            } else if (res == 404) {
+            } else if (res == HttpURLConnection.HTTP_NOT_FOUND) {
                 throw new FileNotFoundException("Returned 404: " + address);
             } else {
                 break;
             }
         }
 
-        final URLConnection connection = con;
-        return connection.getInputStream();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <R, E extends Throwable> R sneak(Throwable t) throws E {
-        throw (E) t;
+        return con.body();
     }
 
     /**
@@ -100,17 +105,12 @@ public final class DownloadUtils {
      * @throws IOException If the download failed
      */
     public static String downloadString(String url) throws IOException {
-        try (InputStream stream = connect(url);
-             ByteArrayOutputStream out = new ByteArrayOutputStream()
-        ) {
-            // NOTE: main source uses InputStream#readAllBytes
-            byte[] buf = new byte[1024];
-            int n;
-            while ((n = stream.read(buf)) > 0) {
-                out.write(buf, 0, n);
-            }
-
-            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+        try (InputStream stream = connect(url)) {
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IOException(e);
         }
     }
 

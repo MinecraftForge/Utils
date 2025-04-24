@@ -1,23 +1,32 @@
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
 }
 
-rootProject.name = 'Utils'
+rootProject.name = 'utils'
 
 include 'hash-utils', 'json-data-utils', 'file-utils', 'log-utils', 'download-utils'
 
 dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            // Files
-            library('commons-io', 'commons-io', 'commons-io').version('2.18.0')
-            library('srgutils', 'net.minecraftforge', 'srgutils').version('0.5.11')
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net/' }
+        mavenCentral()
+        mavenLocal()
+    }
 
-            // Data
-            library('gson', 'com.google.code.gson', 'gson').version('2.10.1')
+    versionCatalogs.register('libs') {
+        // Plugins
+        plugin 'licenser', 'net.minecraftforge.licenser' version '1.2.0'
+        plugin 'gradleutils', 'net.minecraftforge.gradleutils' version '2.5.1'
+        plugin 'modules', 'org.gradlex.extra-java-module-info' version '1.8'
 
-            // Static Analysis
-            library('nulls', 'org.jetbrains', 'annotations').version('26.0.2')
-        }
+        // Files
+        library 'commons-io', 'commons-io', 'commons-io' version '2.18.0'
+        library 'srgutils', 'net.minecraftforge', 'srgutils' version '0.5.11'
+
+        // Data
+        library 'gson', 'com.google.code.gson', 'gson' version '2.10.1'
+
+        // Static Analysis
+        library 'nulls', 'org.jetbrains', 'annotations' version '26.0.2'
     }
 }

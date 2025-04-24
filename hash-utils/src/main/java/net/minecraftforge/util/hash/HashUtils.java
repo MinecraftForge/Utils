@@ -117,7 +117,7 @@ public final class HashUtils {
      */
     @SuppressWarnings("unchecked")
     static <R, E extends Throwable> R sneak(Throwable t) throws E {
-        throw (E)t;
+        throw (E) t;
     }
 
     private HashUtils() { }

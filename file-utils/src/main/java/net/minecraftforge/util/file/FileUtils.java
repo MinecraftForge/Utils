@@ -4,35 +4,31 @@
  */
 package net.minecraftforge.util.file;
 
-import net.minecraftforge.srgutils.IMappingFile;
-import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
@@ -119,8 +115,7 @@ public final class FileUtils {
         if (!dir.isDirectory())
             throw new IllegalArgumentException("Path must be directory: " + dir.getAbsolutePath());
 
-        //noinspection DataFlowIssue - checked by File#isDirectory
-        for (var file : dir.listFiles()) {
+        for (var file : Objects.requireNonNull(dir.listFiles(), () -> "Failed to list files in " + dir.getAbsolutePath())) {
             if (file.isDirectory())
                 files = listFiles(file, files);
             else
@@ -131,26 +126,28 @@ public final class FileUtils {
     }
 
     public static void ensure(File path) {
-        ensureParent(path);
-        path.mkdir();
+        if (!path.isAbsolute())
+            path = path.getAbsoluteFile();
+
+        if (!path.exists() && !path.getAbsoluteFile().mkdirs())
+            throw new IllegalStateException("Failed to ensure existence of directory: " + path.getAbsolutePath());
     }
 
     public static void ensureParent(File path) {
-        var parent = path.getAbsoluteFile().getParentFile();
-        if (parent != null && !parent.exists())
-            parent.mkdirs();
+        ensure(path.getAbsoluteFile().getParentFile());
     }
 
     public static void mergeJars(File output, boolean stripSignatures, File... files) throws IOException {
         mergeJars(output, stripSignatures, null, files);
     }
 
-    public static void mergeJars(File output, boolean stripSignatures, BiPredicate<File, String> filter, File... files) throws IOException {
-        if (output.exists())
-            output.delete();
+    public static void mergeJars(File output, boolean stripSignatures, @Nullable BiPredicate<File, String> filter, File... files) throws IOException {
+        if (output.exists() && !output.delete())
+            throw new IllegalStateException("Cannot merge jars, failed to delete existing output jar: " + output.getAbsolutePath());
+
         ensureParent(output);
 
-        var zips = new ArrayList<Closeable>();
+        var zips = new ArrayList<ZipFile>();
         try {
             // Find all entries, first one wins. We also use a TreeMap so the output is sorted.
             // JarInputStream requires the manifest to be the first entry, followed by any signature
@@ -171,13 +168,7 @@ public final class FileUtils {
                         if (filter != null && !filter.test(input, name))
                             continue;
 
-                        tmp.add(new Info(name, () -> {
-                            try {
-                                return new FileInputStream(file);
-                            } catch (IOException e) {
-                                return sneak(e);
-                            }
-                        }));
+                        tmp.add(new Info(name, file));
                     }
                 } else {
                     var zip = new ZipFile(input);
@@ -203,7 +194,7 @@ public final class FileUtils {
                     if (JarFile.MANIFEST_NAME.equalsIgnoreCase(entry.name)) {
                         if (manifest == null)
                             manifest = entry;
-                    // Technically services can be multi-release files, but I don't care. If this comes up in the MC world then i'll care
+                        // Technically services can be multi-release files, but I don't care. If this comes up in the MC world then i'll care
                     } else if (entry.name.startsWith("META-INF/services/")) {
                         var data = services.get(entry.name);
                         if (data == null) {
@@ -212,7 +203,7 @@ public final class FileUtils {
                         } else
                             data.write('\n');
 
-                        try (var is = entry.stream().get()) {
+                        try (var is = entry.stream.get()) {
                             is.transferTo(data);
                         }
                     } else if (isBlockOrSF(entry.name))
@@ -245,7 +236,7 @@ public final class FileUtils {
             for (var zip : zips) {
                 try {
                     zip.close();
-                } catch (IOException e) {}
+                } catch (IOException ignored) { }
             }
         }
     }
@@ -280,13 +271,7 @@ public final class FileUtils {
     private static void makeJarInternal(File dir, List<File> classes, JarOutputStream jos) throws IOException {
         for (var file : classes) {
             String entryName = file.getAbsoluteFile().toString().substring(dir.getAbsolutePath().length() + 1).replace('\\', '/');
-            writeEntry(jos, new Info(entryName, () -> {
-                try {
-                    return new FileInputStream(file);
-                } catch (IOException e) {
-                    return sneak(e);
-                }
-            }));
+            writeEntry(jos, new Info(entryName, file));
         }
     }
 
@@ -302,63 +287,58 @@ public final class FileUtils {
         }
     }
 
-    /** @see <a href="https://github.com/MinecraftForge/ForgeGradle/blob/efa70580314c88192486e4ab089f4b970d5b080c/src/common/java/net/minecraftforge/gradle/common/util/MinecraftRepo.java#L323-L327">MinecraftRepo.splitJar(...) in ForgeGradle 6</a> */
-    public static void splitJar(File raw, File mappings, File output, boolean slim, boolean stable) throws IOException {
-        try (FileInputStream input = new FileInputStream(mappings)) {
-            splitJar(raw, input, output, slim, stable);
-        }
-    }
+    /*
+    Want a whitelist of original classes from an IMappingsFile from SRGUtils?
 
-    /** @see <a href="https://github.com/MinecraftForge/ForgeGradle/blob/efa70580314c88192486e4ab089f4b970d5b080c/src/common/java/net/minecraftforge/gradle/common/util/MinecraftRepo.java#L329-L364">MinecraftRepo.splitJar(...) in ForgeGradle 6</a> */
-    public static void splitJar(File raw, InputStream mappings, File output, boolean slim, boolean stable) throws IOException {
-        try (ZipFile zin = new ZipFile(raw);
-             FileOutputStream fos = new FileOutputStream(output);
-             ZipOutputStream out = new ZipOutputStream(fos)) {
+    var whitelist = IMappingFile
+        .load(mappings).getClasses().stream()
+        .map(IMappingFile.IClass::getOriginal)
+        .collect(Collectors.toSet());
+    FileUtils.splitJar(raw, whitelist, output, slim, stable);
+     */
+    /**
+     * @see <a
+     * href="https://github.com/MinecraftForge/ForgeGradle/blob/efa70580314c88192486e4ab089f4b970d5b080c/src/common/java/net/minecraftforge/gradle/common/util/MinecraftRepo.java#L329-L364">
+     * MinecraftRepo.splitJar(...) in ForgeGradle 6</a>
+     */
+    public static void splitJar(File raw, Set<String> whitelist, File output, boolean slim, boolean stable) throws IOException {
+        try (var zin = new ZipFile(raw);
+             var fos = new FileOutputStream(output);
+             var out = new ZipOutputStream(fos)) {
 
-            Set<String> whitelist = IMappingFile.load(mappings).getClasses().stream()
-                                                .map(IMappingFile.IClass::getOriginal)
-                                                .collect(Collectors.toSet());
-
-            for (Enumeration<? extends ZipEntry> entries = zin.entries(); entries.hasMoreElements(); ) {
-                ZipEntry entry = entries.nextElement();
-                String name = entry.getName();
+            for (var entries = zin.entries(); entries.hasMoreElements(); ) {
+                var entry = entries.nextElement();
+                var name = entry.getName();
                 if (name.endsWith(".class")) {
                     boolean isNotch = whitelist.contains(name.substring(0, name.length() - 6 /*.class*/));
-                    if (slim == isNotch) {
-                        ZipEntry _new = getStableEntry(name, stable ? ZIPTIME : 0);
-                        out.putNextEntry(_new);
-                        try (InputStream ein = zin.getInputStream(entry)) {
-                            IOUtils.copy(ein, out);
-                        }
-                        out.closeEntry();
-                    }
+                    if (slim != isNotch) continue;
                 } else {
-                    if (!slim) {
-                        ZipEntry _new = getStableEntry(name, stable ? ZIPTIME : 0);
-                        out.putNextEntry(_new);
-                        try (InputStream ein = zin.getInputStream(entry)) {
-                            IOUtils.copy(ein, out);
-                        }
-                        out.closeEntry();
-                    }
+                    if (slim) continue;
                 }
+
+                var _new = getStableEntry(name, stable ? ZIPTIME : 0);
+                out.putNextEntry(_new);
+                try (InputStream ein = zin.getInputStream(entry)) {
+                    ein.transferTo(out);
+                }
+                out.closeEntry();
             }
         }
 //        updateHash(output);
     }
 
     private static void writeEntry(ZipOutputStream zos, Info file) throws IOException {
-        zos.putNextEntry(FileUtils.getStableEntry(file.name()));
+        zos.putNextEntry(FileUtils.getStableEntry(file.name));
         file.stream.get().transferTo(zos);
         zos.closeEntry();
     }
 
     private static void writeStrippedManifest(ZipOutputStream zos, Info file) throws IOException {
-        try (var is = file.stream().get()) {
+        try (var is = file.stream.get()) {
             var manifest = new Manifest(is);
-            for (var itr = manifest.getEntries().entrySet().iterator(); itr.hasNext();) {
+            for (var itr = manifest.getEntries().entrySet().iterator(); itr.hasNext(); ) {
                 var section = itr.next();
-                for (var sItr = section.getValue().entrySet().iterator(); sItr.hasNext();) {
+                for (var sItr = section.getValue().entrySet().iterator(); sItr.hasNext(); ) {
                     var attribute = sItr.next();
                     var key = attribute.getKey().toString().toLowerCase(Locale.ROOT);
                     if (key.endsWith("-digest"))
@@ -387,60 +367,24 @@ public final class FileUtils {
     }
 
     /**
-     * Sneakily deletes a file or directory on JVM exit using {@link org.apache.commons.io.FileUtils#forceDeleteOnExit(File)} and
-     * {@link #sneak(Throwable)}.
+     * Sneakily deletes a file or directory on JVM exit.
      *
      * @param file The file to delete
      */
-    public static void sneakyDeleteOnExit(File file) {
-        try {
-            org.apache.commons.io.FileUtils.forceDeleteOnExit(file);
+    public static void deleteOnExit(File file) {
+        if (!file.exists()) return;
+
+        try (var walk = Files.walk(file.toPath())) {
+            walk.sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEachOrdered(File::deleteOnExit);
         } catch (IOException e) {
-            // TODO Handle this exception instead of throw?
-            FileUtils.sneak(e);
+            sneak(e);
         }
     }
 
-    /**
-     * Allows the given {@link Throwable} to be thrown without needing to declare it in the method signature or
-     * arbitrarily checked at compile time.
-     *
-     * @param t   The throwable
-     * @param <R> The type of the fake return if used as a return statement
-     * @param <E> The type of the throwable
-     * @throws E Unconditionally thrown
-     */
     @SuppressWarnings("unchecked")
-    public static <R, E extends Throwable> R sneak(Throwable t) throws E {
-        throw (E)t;
-    }
-
-    /**
-     * Mimic's Mojang's {@code Util.make(...)} in Minecraft. This is a utility method that allows you to modify an input
-     * object in-line with the given action.
-     *
-     * @param obj    The object to modify
-     * @param action The action to apply to the object
-     * @param <T>    The type of the object
-     * @return The object
-     */
-    public static <T> T make(T obj, Consumer<T> action) {
-        action.accept(obj);
-        return obj;
-    }
-
-    /**
-     * Mimic's Mojang's {@code Util.make(...)} in Minecraft. This is a utility method that allows you to modify an input
-     * object in-line with the given action. This version of the method allows you to return a new object instead of the
-     * original, which can be useful for in-line {@link String} modifications that would otherwise cause variable
-     * re-assignment (bad if you want to use them as lambda parameters).
-     *
-     * @param obj    The object to modify
-     * @param action The action to apply to the object
-     * @param <T>    The type of the object
-     * @return The object
-     */
-    public static <T> T make(T obj, Function<T, T> action) {
-        return action.apply(obj);
+    private static <R, E extends Throwable> R sneak(Throwable t) throws E {
+        throw (E) t;
     }
 }

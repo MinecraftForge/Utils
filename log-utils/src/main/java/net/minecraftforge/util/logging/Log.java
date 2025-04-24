@@ -4,10 +4,15 @@
  */
 package net.minecraftforge.util.logging;
 
-import java.io.PrintStream;
-import java.util.EnumMap;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
-import static net.minecraftforge.util.logging.DelegatePrintStream.EMPTY;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Logging Utils uses this single static logger to log messages.
@@ -30,36 +35,37 @@ import static net.minecraftforge.util.logging.DelegatePrintStream.EMPTY;
  */
 public final class Log {
     /** The lowest level that should be logged. If {@code null}, all logging is completely disabled. */
-    public static Level enabled = Level.INFO;
+    public static @Nullable Level enabled = Level.INFO;
 
-    @SuppressWarnings({"unchecked", "rawtypes"}) // Java 5 restrictions
-    private static final EnumMap<Level, PrintStream> STREAMS = new EnumMap(Level.class);
-
+    public static final PrintStream EMPTY = EmptyPrintStream.INSTANCE;
     /** The stream used for {@link Level#DEBUG}. */
-    public static final PrintStream DEBUG = streamOf(Level.DEBUG, System.out);
+    public static final PrintStream DEBUG = CapturingPrintStream.of(Level.DEBUG, System.out::println);
     /** The stream used for {@link Level#QUIET}. */
-    public static final PrintStream QUIET = streamOf(Level.QUIET, System.out);
+    public static final PrintStream QUIET = CapturingPrintStream.of(Level.QUIET, System.out::println);
     /** The stream used for {@link Level#INFO}. */
-    public static final PrintStream INFO = streamOf(Level.INFO, System.out);
+    public static final PrintStream INFO = CapturingPrintStream.of(Level.INFO, System.out::println);
     /** The stream used for {@link Level#WARN}. */
-    public static final PrintStream WARN = streamOf(Level.WARN, System.out);
+    public static final PrintStream WARN = CapturingPrintStream.of(Level.WARN, System.out::println);
     /** The stream used for {@link Level#ERROR}. */
-    public static final PrintStream ERROR = streamOf(Level.ERROR, System.err);
+    public static final PrintStream ERROR = CapturingPrintStream.of(Level.ERROR, System.err::println);
     /** The stream used for {@link Level#FATAL}. */
-    public static final PrintStream FATAL = streamOf(Level.FATAL, System.err);
+    public static final PrintStream FATAL = CapturingPrintStream.of(Level.FATAL, System.err::println);
 
-    private static PrintStream streamOf(Level level, PrintStream delegate) {
-        PrintStream ret = new DelegatePrintStream(level, delegate);
-        STREAMS.put(level, ret);
-        return ret;
-    }
+
+    /* INDENTATIONS */
 
     private static final String INDENT_STRING = "  ";
-    private static byte indent = 0;
+    private static final String[] INDENT_CACHE = new String[Byte.MAX_VALUE];
+    private static byte indentLevel = 0;
+
+    static {
+        INDENT_CACHE[0] = "";
+        INDENT_CACHE[1] = INDENT_STRING;
+    }
 
     /** Pushes the current indentation level up by one. */
     public static byte push() {
-        return indent++;
+        return indentLevel++;
     }
 
     /**
@@ -68,25 +74,114 @@ public final class Log {
      * @throws IllegalStateException If the indentation level is already 0
      */
     public static void pop() {
-        if (--indent < 0)
-            throw new IllegalStateException("Cannot pop logger below 0");
+        if (--indentLevel < 0)
+            throw new IllegalStateException("Cannot pop Log below 0");
     }
 
     public static void pop(byte indent) {
         if (indent < 0)
-            throw new IllegalStateException("Cannot pop logger below 0");
+            throw new IllegalArgumentException("Cannot pop Log below 0");
 
-        Log.indent = indent;
+        indentLevel = indent;
     }
 
     static String getIndentation() {
-        if (indent == 0) return "";
+        String ret = INDENT_CACHE[indentLevel];
+        //noinspection ConstantValue -- IntelliJ skill issue
+        return ret == null ? INDENT_CACHE[indentLevel] = getIndentation(indentLevel) : ret;
+    }
 
+    private static String getIndentation(byte indent) {
         StringBuilder builder = new StringBuilder(INDENT_STRING.length() * indent);
         for (int i = 0; i < indent; i++)
             builder.append(INDENT_STRING);
         return builder.toString();
     }
+
+
+    /* CAPTURING */
+
+    static @UnknownNullability List<CapturedMessage> CAPTURED;
+
+    private static final class CapturedMessage {
+        private final Log.Level level;
+        private final String message;
+
+        private CapturedMessage(Log.Level level, String message) {
+            this.level = level;
+            this.message = message;
+        }
+    }
+
+    /**
+     * If the log is capturing log messages.
+     *
+     * @return The capturing state of the Log
+     * @see #capture()
+     */
+    public static boolean isCapturing() {
+        return CAPTURED != null;
+    }
+
+    /**
+     * Begins capturing log messages.
+     * <p>When capturing, all log messages are stored in memory and not printed to the screen. They can either be
+     * {@linkplain #release() released} to be printed on the screen or {@linkplain #drop() dropped} to be removed and
+     * never printed.</p>
+     */
+    public static void capture() {
+        if (CAPTURED != null) return;
+        CAPTURED = new ArrayList<>(128);
+    }
+
+    static void tryCapture(Consumer<String> logger, Log.Level level, String message) {
+        if (CAPTURED != null)
+            CAPTURED.add(new CapturedMessage(level, message));
+        else
+            logger.accept(message);
+    }
+
+    /**
+     * Drops all captured log messages and stops capturing.
+     *
+     * @see #capture()
+     */
+    public static void drop() {
+        CAPTURED = null;
+    }
+
+    /**
+     * Releases all captured log messages (using {@link Log#log(Level, Object)}), then stops capturing.
+     *
+     * @see #capture()
+     * @see #release(BiConsumer)
+     */
+    public static void release() {
+        release(Log::logInternal);
+    }
+
+    /**
+     * Releases all captured log messages into the given consumer, then stops capturing.
+     *
+     * @param consumer The consumer to release the captured log messages to
+     * @see #capture()
+     */
+    public static void release(BiConsumer<Log.Level, String> consumer) {
+        if (CAPTURED == null) return;
+
+        Iterator<CapturedMessage> itor = CAPTURED.iterator();
+        CAPTURED = null;
+        while (itor.hasNext()) {
+            CapturedMessage capture = itor.next();
+            consumer.accept(capture.level, capture.message);
+        }
+    }
+
+    // so we can use a method reference instead of allocate a lambda
+    private static void logInternal(Level level, String message) {
+        Log.log(level, message);
+    }
+
 
     /**
      * Gets the {@linkplain PrintStream print stream} for the given {@linkplain Level level}. If the given level is not
@@ -96,8 +191,18 @@ public final class Log {
      * @param level The level to get the print stream for
      * @return The print stream
      */
-    public static PrintStream getLog(Level level) {
-        return level != null ? STREAMS.get(level) : EMPTY;
+    public static PrintStream getLog(@Nullable Level level) {
+        if (level == null) return EMPTY;
+        switch (level) {
+            case DEBUG: return DEBUG;
+            case QUIET: return QUIET;
+            case INFO: return INFO;
+            case WARN: return WARN;
+            case ERROR: return ERROR;
+            case FATAL: return FATAL;
+        }
+
+        throw new IllegalStateException("Unexpected value: " + level);
     }
 
     /**

@@ -2,50 +2,73 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.minecraftforge.licenser' version '1.1.1'
-    id 'net.minecraftforge.gradleutils' version '2.4.13'
+    alias libs.plugins.licenser
+    alias libs.plugins.gradleutils
 }
 
-apply from: rootProject.file('build_shared.gradle')
+final projectDisplayName = 'JSON Data Utils'
+final projectVendor = 'Forge Development LLC'
+description = 'Utilities for working with JSON data related to Forge projects and Minecraft'
+group = 'net.minecraftforge'
+version = gitversion.tagOffset
+
+println "Version: $version"
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of 8
+    withSourcesJar()
+}
 
 dependencies {
     api libs.gson
 
-    // Static Analysis
     compileOnly libs.nulls
 }
 
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(8)
-    withSourcesJar()
-}
-
-jar {
+tasks.named('jar', Jar) {
     manifest {
         attributes('Automatic-Module-Name': 'net.minecraftforge.utils.json_data')
         attributes([
-            'Specification-Title':   'JSON Data Utils',
-            'Specification-Vendor':  'Forge Development LLC',
-            'Specification-Version':  gitversion.version.info.tag,
-            'Implementation-Title':  'JSON Data Utils',
-            'Implementation-Vendor': 'Forge Development LLC',
+            'Specification-Title'   : projectDisplayName,
+            'Specification-Vendor'  : projectVendor,
+            'Specification-Version' : gitversion.info.tag,
+            'Implementation-Title'  : projectDisplayName,
+            'Implementation-Vendor' : projectVendor,
             'Implementation-Version': project.version
-        ] as LinkedHashMap, 'net/minecraftforge/util/data/')
+        ], 'net/minecraftforge/util/data/')
     }
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+license {
+    header = rootProject.file('LICENSE-header.txt')
+    newLine = false
+    exclude '**/*.properties'
+}
+
+changelog {
+    fromBase()
+    publishAll = false
+}
+
 publishing {
-    publications.register('mavenJava', MavenPublication).configure {
-        artifactId = project.name
+    publications.register('mavenJava', MavenPublication) {
         from components.java
 
+        artifactId = project.name
+
         pom { pom ->
-            name = 'JSON Data Utils'
-            description = 'Utilities for working with JSON data related to Forge projects and Minecraft'
+            name = projectDisplayName
+            description = project.description
 
-            gradleutils.pom.gitHubDetails = pom
+            gradleutils.pom.setGitHubDetails pom
 
-            license gradleutils.pom.licenses.LGPLv2_1
+            licenses {
+                license gradleutils.pom.licenses.LGPLv2_1
+            }
 
             developers {
                 developer gradleutils.pom.Developers.LexManos
@@ -53,7 +76,10 @@ publishing {
             }
         }
     }
+
     repositories {
         maven gradleutils.publishingForgeMaven
     }
 }
+
+idea.module { downloadSources = downloadJavadoc = true }
