@@ -107,10 +107,8 @@ public final class DownloadUtils {
     public static String downloadString(String url) throws IOException {
         try (InputStream stream = connect(url)) {
             return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IOException(e);
+            throw new DownloadFailedException(url, e);
         }
     }
 
@@ -126,7 +124,6 @@ public final class DownloadUtils {
             return downloadString(url);
         } catch (IOException e) {
             if (!silent) {
-                Log.warn("Failed to download " + url);
                 e.printStackTrace(Log.WARN);
             }
 
@@ -160,10 +157,8 @@ public final class DownloadUtils {
             Path path = target.toPath();
             Files.createDirectories(path.getParent());
             Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IOException(e);
+            throw new DownloadFailedException(url, e);
         }
     }
 
@@ -180,11 +175,16 @@ public final class DownloadUtils {
             return true;
         } catch (IOException e) {
             if (!silent) {
-                Log.warn("Failed to download " + url);
                 e.printStackTrace(Log.WARN);
             }
 
             return false;
+        }
+    }
+
+    private static final class DownloadFailedException extends IOException {
+        public DownloadFailedException(String url, Throwable cause) {
+            super("Failed to download " + url, cause);
         }
     }
 }
