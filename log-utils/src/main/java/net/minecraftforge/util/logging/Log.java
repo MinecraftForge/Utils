@@ -37,19 +37,19 @@ public final class Log {
     /** The lowest level that should be logged. If {@code null}, all logging is completely disabled. */
     public static @Nullable Level enabled = Level.INFO;
 
-    public static final PrintStream EMPTY = EmptyPrintStream.INSTANCE;
+    public static final PrintStream EMPTY = DelegatePrintStream.EMPTY;
     /** The stream used for {@link Level#DEBUG}. */
-    public static final PrintStream DEBUG = CapturingPrintStream.of(Level.DEBUG, System.out::println);
+    public static final PrintStream DEBUG = new DelegatePrintStream.Capturing(Level.DEBUG, System.out);
     /** The stream used for {@link Level#QUIET}. */
-    public static final PrintStream QUIET = CapturingPrintStream.of(Level.QUIET, System.out::println);
+    public static final PrintStream QUIET = new DelegatePrintStream.Capturing(Level.QUIET, System.out);
     /** The stream used for {@link Level#INFO}. */
-    public static final PrintStream INFO = CapturingPrintStream.of(Level.INFO, System.out::println);
+    public static final PrintStream INFO = new DelegatePrintStream.Capturing(Level.INFO, System.out);
     /** The stream used for {@link Level#WARN}. */
-    public static final PrintStream WARN = CapturingPrintStream.of(Level.WARN, System.out::println);
+    public static final PrintStream WARN = new DelegatePrintStream.Capturing(Level.WARN, System.out);
     /** The stream used for {@link Level#ERROR}. */
-    public static final PrintStream ERROR = CapturingPrintStream.of(Level.ERROR, System.err::println);
+    public static final PrintStream ERROR = new DelegatePrintStream.Capturing(Level.ERROR, System.err);
     /** The stream used for {@link Level#FATAL}. */
-    public static final PrintStream FATAL = CapturingPrintStream.of(Level.FATAL, System.err::println);
+    public static final PrintStream FATAL = new DelegatePrintStream.Capturing(Level.FATAL, System.err);
 
 
     /* INDENTATIONS */
@@ -104,10 +104,10 @@ public final class Log {
     static @UnknownNullability List<CapturedMessage> CAPTURED;
 
     private static final class CapturedMessage {
-        private final Log.Level level;
+        private final Level level;
         private final String message;
 
-        private CapturedMessage(Log.Level level, String message) {
+        private CapturedMessage(Level level, String message) {
             this.level = level;
             this.message = message;
         }
@@ -134,7 +134,7 @@ public final class Log {
         CAPTURED = new ArrayList<>(128);
     }
 
-    static void tryCapture(Consumer<String> logger, Log.Level level, String message) {
+    static void tryCapture(Consumer<String> logger, Level level, String message) {
         if (CAPTURED != null)
             CAPTURED.add(new CapturedMessage(level, message));
         else
@@ -157,7 +157,7 @@ public final class Log {
      * @see #release(BiConsumer)
      */
     public static void release() {
-        release(Log::logInternal);
+        release(Log::logCaptured);
     }
 
     /**
@@ -166,7 +166,7 @@ public final class Log {
      * @param consumer The consumer to release the captured log messages to
      * @see #capture()
      */
-    public static void release(BiConsumer<Log.Level, String> consumer) {
+    public static void release(BiConsumer<Level, String> consumer) {
         if (CAPTURED == null) return;
 
         Iterator<CapturedMessage> itor = CAPTURED.iterator();
@@ -178,8 +178,8 @@ public final class Log {
     }
 
     // so we can use a method reference instead of allocate a lambda
-    private static void logInternal(Level level, String message) {
-        Log.log(level, message);
+    private static void logCaptured(Level level, String message) {
+        ((DelegatePrintStream) Log.getLog(level)).getDelegate().println(message);
     }
 
 
