@@ -17,12 +17,19 @@ import java.util.Map;
 public class MinecraftVersion {
     /** The version id. */
     public String id;
+    /** The Java version ({@code null} before 1.17). */
+    public JavaVersion javaVersion;
     /** The artifact downloads. */
     public Map<String, Download> downloads;
     /** The required libraries. */
     public Library[] libraries;
     /** The asset index reference. */
     public AssetsIndexInfo assetIndex;
+
+    public static final class JavaVersion {
+        public String component;
+        public int majorVersion;
+    }
 
     public List<Lib> getLibs() {
         List<Lib> libs = new ArrayList<>();
