@@ -8,7 +8,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
+import com.google.gson.ToNumberPolicy;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -21,8 +23,23 @@ import java.io.InputStreamReader;
 // TODO [MCMaven][Documentation] Document
 public class JsonData {
     private static final Gson GSON = new GsonBuilder()
+            .setObjectToNumberStrategy(JsonData::readNumber)
             .setPrettyPrinting()
             .create();
+
+    private static Number readNumber(JsonReader in) throws IOException {
+        try {
+            return ToNumberPolicy.LONG_OR_DOUBLE.readNumber(in);
+        } catch (Throwable suppressed) {
+            try {
+                return ToNumberPolicy.BIG_DECIMAL.readNumber(in);
+            } catch (Throwable e) {
+                IOException throwing = new IOException("Failed to read number from " + in, e);
+                throwing.addSuppressed(suppressed);
+                throw throwing;
+            }
+        }
+    }
 
     public static AssetsIndex assetsIndex(File file) {
         return fromJson(file, AssetsIndex.class);
