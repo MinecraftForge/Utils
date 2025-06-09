@@ -260,7 +260,7 @@ public final class FileUtils {
     public static void makeZip(File inputDir, File zip) {
         try (var zos = new ZipOutputStream(new FileOutputStream(zip))) {
             for (var file : listFiles(inputDir)) {
-                var entryName = inputDir.toPath().relativize(file.toPath()).toString();
+                var entryName = inputDir.toPath().relativize(file.toPath()).toString().replace('\\', '/');
                 writeEntry(zos, new Info(entryName, file));
             }
         } catch (IOException e) {
