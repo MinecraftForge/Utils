@@ -28,6 +28,7 @@ public class HashStore {
     private final Map<String, String> oldHashes = new HashMap<>();
     private final Map<String, String> newHashes = new HashMap<>();
     private @Nullable File target;
+    private boolean saved;
 
     public static HashStore fromFile(File path) {
         File parent = path.getAbsoluteFile().getParentFile();
@@ -104,6 +105,10 @@ public class HashStore {
         }
 
         return this;
+    }
+
+    public boolean isLoaded() {
+        return this.target != null;
     }
 
     public boolean exists() {
@@ -193,9 +198,14 @@ public class HashStore {
 
         try {
             Files.write(file.toPath(), buf.toString().getBytes(StandardCharsets.UTF_8));
+            this.saved = true;
         } catch (IOException e) {
             sneak(e);
         }
+    }
+
+    public boolean isSaved() {
+        return this.saved;
     }
 
     private String getPath(File file) {
