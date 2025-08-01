@@ -98,6 +98,39 @@ public final class DownloadUtils {
     }
 
     /**
+     * Downloads raw bytes from the given URL.
+     *
+     * @param url The URL to download from
+     * @return The downloaded bytes, stored in memory
+     * @throws IOException If the download failed
+     */
+    public static byte[] downloadBytes(String url) throws IOException {
+        try (InputStream stream = connect(url)) {
+            return stream.readAllBytes();
+        } catch (Exception e) {
+            throw new DownloadFailedException(url, e);
+        }
+    }
+
+    /**
+     * Downloads raw bytes from the given URL.
+     * <p>Returns {@code null} on failure.</p>
+     *
+     * @param url The URL to download from
+     * @return The downloaded bytes, stored in memory, or {@code null} if the download failed
+     */
+    public static byte @Nullable [] tryDownloadBytes(boolean silent, String url) {
+        try {
+            return downloadBytes(url);
+        } catch (IOException e) {
+            if (!silent) {
+                e.printStackTrace(Log.WARN);
+            }
+            return null;
+        }
+    }
+
+    /**
      * Downloads a string from the given URL, effectively acting as {@code curl}.
      *
      * @param url The URL to download from
@@ -105,11 +138,7 @@ public final class DownloadUtils {
      * @throws IOException If the download failed
      */
     public static String downloadString(String url) throws IOException {
-        try (InputStream stream = connect(url)) {
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new DownloadFailedException(url, e);
-        }
+        return new String(downloadBytes(url), StandardCharsets.UTF_8);
     }
 
     /**

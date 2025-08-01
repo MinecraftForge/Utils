@@ -93,13 +93,13 @@ public final class DownloadUtils {
     }
 
     /**
-     * Downloads a string from the given URL, effectively acting as {@code curl}.
+     * Downloads raw bytes from the given URL.
      *
      * @param url The URL to download from
-     * @return The downloaded string
+     * @return The downloaded bytes, stored in memory
      * @throws IOException If the download failed
      */
-    public static String downloadString(String url) throws IOException {
+    public static byte[] downloadBytes(String url) throws IOException {
         try (InputStream stream = connect(url);
              ByteArrayOutputStream out = new ByteArrayOutputStream()
         ) {
@@ -110,10 +110,39 @@ public final class DownloadUtils {
                 out.write(buf, 0, n);
             }
 
-            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+            return out.toByteArray();
         } catch (Exception e) {
             throw new DownloadFailedException(url, e);
         }
+    }
+
+    /**
+     * Downloads raw bytes from the given URL.
+     * <p>Returns {@code null} on failure.</p>
+     *
+     * @param url The URL to download from
+     * @return The downloaded bytes, stored in memory, or {@code null} if the download failed
+     */
+    public static byte @Nullable [] tryDownloadBytes(boolean silent, String url) {
+        try {
+            return downloadBytes(url);
+        } catch (IOException e) {
+            if (!silent) {
+                e.printStackTrace(Log.WARN);
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Downloads a string from the given URL, effectively acting as {@code curl}.
+     *
+     * @param url The URL to download from
+     * @return The downloaded string
+     * @throws IOException If the download failed
+     */
+    public static String downloadString(String url) throws IOException {
+        return new String(downloadBytes(url), StandardCharsets.UTF_8);
     }
 
     /**
