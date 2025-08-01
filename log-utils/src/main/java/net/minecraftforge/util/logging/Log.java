@@ -11,6 +11,7 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -88,30 +89,13 @@ public final class Log {
     static String getIndentation() {
         String ret = INDENT_CACHE[indentLevel];
         //noinspection ConstantValue -- IntelliJ skill issue
-        return ret == null ? INDENT_CACHE[indentLevel] = getIndentation(indentLevel) : ret;
-    }
-
-    private static String getIndentation(byte indent) {
-        StringBuilder builder = new StringBuilder(INDENT_STRING.length() * indent);
-        for (int i = 0; i < indent; i++)
-            builder.append(INDENT_STRING);
-        return builder.toString();
+        return ret == null ? INDENT_CACHE[indentLevel] = MultiReleaseMethods.getIndentation(indentLevel) : ret;
     }
 
 
     /* CAPTURING */
 
-    static @UnknownNullability List<CapturedMessage> CAPTURED;
-
-    private static final class CapturedMessage {
-        private final Level level;
-        private final String message;
-
-        private CapturedMessage(Level level, String message) {
-            this.level = level;
-            this.message = message;
-        }
-    }
+    private static @UnknownNullability List<Map.Entry<Level, String>> CAPTURED;
 
     /**
      * If the log is capturing log messages.
@@ -136,7 +120,7 @@ public final class Log {
 
     static void tryCapture(Consumer<String> logger, Level level, String message) {
         if (CAPTURED != null)
-            CAPTURED.add(new CapturedMessage(level, message));
+            CAPTURED.add(MultiReleaseMethods.mapEntry(level, message));
         else
             logger.accept(message);
     }
@@ -163,17 +147,18 @@ public final class Log {
     /**
      * Releases all captured log messages into the given consumer, then stops capturing.
      *
-     * @param consumer The consumer to release the captured log messages to
+     * @param consumer The consumer to release the captured log messages to. The first input is the {@link Level} of the
+     *                 message, the second input is the message itself.
      * @see #capture()
      */
     public static void release(BiConsumer<Level, String> consumer) {
         if (CAPTURED == null) return;
 
-        Iterator<CapturedMessage> itor = CAPTURED.iterator();
+        Iterator<Map.Entry<Level, String>> itor = CAPTURED.iterator();
         CAPTURED = null;
         while (itor.hasNext()) {
-            CapturedMessage capture = itor.next();
-            consumer.accept(capture.level, capture.message);
+            Map.Entry<Level, String> capture = itor.next();
+            consumer.accept(capture.getKey(), capture.getValue());
         }
     }
 

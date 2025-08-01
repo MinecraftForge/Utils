@@ -14,9 +14,22 @@ version = gitversion.tagOffset
 
 println "Version: $version"
 
+final java11 = sourceSets.create('java11')
+
 java {
     toolchain.languageVersion = JavaLanguageVersion.of 8
     withSourcesJar()
+
+    registerFeature(java11.name) {
+        usingSourceSet java11
+        capability project.group.toString(), project.name, project.version.toString()
+        disablePublication()
+    }
+}
+
+configurations {
+    named(java11.implementationConfigurationName) { extendsFrom implementation }
+    named(java11.compileOnlyConfigurationName) { extendsFrom compileOnly }
 }
 
 dependencies {
@@ -25,7 +38,10 @@ dependencies {
 
 tasks.named('jar', Jar) {
     manifest {
-        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.logging')
+        attributes([
+                'Automatic-Module-Name': 'net.minecraftforge.utils.logging',
+                'Multi-Release'        : 'true'
+        ])
         attributes([
             'Specification-Title'   : projectDisplayName,
             'Specification-Vendor'  : projectVendor,
@@ -34,6 +50,16 @@ tasks.named('jar', Jar) {
             'Implementation-Vendor' : projectVendor,
             'Implementation-Version': project.version
         ], 'net/minecraftforge/util/logging/')
+
+        into('META-INF/versions/11') {
+            from java11.output
+        }
+    }
+}
+
+tasks.named(java11.compileJavaTaskName, JavaCompile) {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of 11
     }
 }
 
