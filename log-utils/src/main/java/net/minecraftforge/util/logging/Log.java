@@ -101,7 +101,7 @@ public final class Log {
 
     /* CAPTURING */
 
-    static @UnknownNullability List<CapturedMessage> CAPTURED;
+    private static @UnknownNullability List<CapturedMessage> CAPTURED;
 
     private static final class CapturedMessage {
         private final Level level;
@@ -208,8 +208,12 @@ public final class Log {
     /**
      * Prints an empty message to the given level, similar to {@link PrintStream#println()}.
      *
+     * @deprecated Directly use the no-args method for the given level instead - e.g. {@link Log#info()} for the
+     *             {@link Level#INFO INFO} level.
+     *
      * @param level The level to log the message at
      */
+    @Deprecated
     public static void log(Level level) {
         getLog(level).println();
     }
@@ -217,9 +221,13 @@ public final class Log {
     /**
      * Logs a message for the given level.
      *
+     * @deprecated Directly use the object arg method for the given level instead - e.g. {@link Log#info(Object)} for
+     *             the {@link Level#INFO INFO} level.
+     *
      * @param level   The level to log the message at
      * @param message The message to log
      */
+    @Deprecated
     public static void log(Level level, Object message) {
         getLog(level).println(message);
     }
@@ -227,9 +235,13 @@ public final class Log {
     /**
      * Logs the stacktrace of a throwable for the given level.
      *
+     * @deprecated Directly use the throwable arg method for the given level instead - e.g. {@link Log#error(Throwable)}
+     *             for the {@link Level#ERROR ERROR} level.
+     *
      * @param level     The level to log the message at
      * @param throwable The throwable to log
      */
+    @Deprecated
     public static void log(Level level, Throwable throwable) {
         throwable.printStackTrace(getLog(level));
     }
@@ -237,12 +249,17 @@ public final class Log {
     /**
      * Logs a message and THEN the stacktrace of a throwable for the given level.
      *
+     * @deprecated Directly use the object and throwable args method for the given level instead - e.g.
+     *             {@link Log#error(Object, Throwable)} for the {@link Level#ERROR ERROR} level.
+     *
      * @param level     The level to log the message at
      * @param throwable The throwable to log
      */
+    @Deprecated
     public static void log(Level level, Object message, Throwable throwable) {
-        log(level, message);
-        log(level, throwable);
+        PrintStream log = getLog(level);
+        log.println(message);
+        throwable.printStackTrace(log);
     }
 
     /** Represents an individual logging level. */
@@ -250,100 +267,340 @@ public final class Log {
         DEBUG, QUIET, INFO, WARN, ERROR, FATAL;
     }
 
+    /**
+     * Prints an empty message to the {@link Level#DEBUG DEBUG} level, similar to {@link PrintStream#println()}.
+     */
     public static void debug() {
-        log(Level.DEBUG);
+        DEBUG.println();
     }
 
+    /**
+     * Logs a message for the {@link Level#DEBUG DEBUG} level.
+     *
+     * @param message The message to log
+     */
+    public static void debug(String message) {
+        DEBUG.println(message);
+    }
+
+    /**
+     * Logs a message for the {@link Level#DEBUG DEBUG} level.
+     *
+     * @param message The message to log
+     */
     public static void debug(Object message) {
-        log(Level.DEBUG, message);
+        DEBUG.println(message);
     }
 
+    /**
+     * Logs the stacktrace of a throwable for the {@link Level#DEBUG DEBUG} level.
+     *
+     * @param throwable The throwable to log
+     */
     public static void debug(Throwable throwable) {
-        log(Level.DEBUG, throwable);
+        throwable.printStackTrace(DEBUG);
     }
 
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#DEBUG DEBUG} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
+    public static void debug(String message, Throwable throwable) {
+        debug(message);
+        debug(throwable);
+    }
+
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#DEBUG DEBUG} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
     public static void debug(Object message, Throwable throwable) {
-        log(Level.DEBUG, message, throwable);
+        debug(message);
+        debug(throwable);
     }
 
+    /**
+     * Prints an empty message to the {@link Level#QUIET QUIET} level, similar to {@link PrintStream#println()}.
+     */
     public static void quiet() {
-        log(Level.QUIET);
+        QUIET.println();
     }
 
+    /**
+     * Logs a message for the {@link Level#QUIET QUIET} level.
+     *
+     * @param message The message to log
+     */
+    public static void quiet(String message) {
+        QUIET.println(message);
+    }
+
+    /**
+     * Logs a message for the {@link Level#QUIET QUIET} level.
+     *
+     * @param message The message to log
+     */
     public static void quiet(Object message) {
-        log(Level.QUIET, message);
+        QUIET.println(message);
     }
 
+    /**
+     * Logs the stacktrace of a throwable for the {@link Level#QUIET QUIET} level.
+     *
+     * @param throwable The throwable to log
+     */
     public static void quiet(Throwable throwable) {
-        log(Level.QUIET, throwable);
+        throwable.printStackTrace(QUIET);
     }
 
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#QUIET QUIET} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
+    public static void quiet(String message, Throwable throwable) {
+        quiet(message);
+        quiet(throwable);
+    }
+
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#QUIET QUIET} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
     public static void quiet(Object message, Throwable throwable) {
-        log(Level.QUIET, message, throwable);
+        quiet(message);
+        quiet(throwable);
     }
 
+    /**
+     * Prints an empty message to the {@link Level#INFO INFO} level, similar to {@link PrintStream#println()}.
+     */
     public static void info() {
-        log(Level.INFO);
+        INFO.println();
     }
 
+    /**
+     * Logs a message for the {@link Level#INFO INFO} level.
+     *
+     * @param message The message to log
+     */
+    public static void info(String message) {
+        INFO.println(message);
+    }
+
+    /**
+     * Logs a message for the {@link Level#INFO INFO} level.
+     *
+     * @param message The message to log
+     */
     public static void info(Object message) {
-        log(Level.INFO, message);
+        INFO.println(message);
     }
 
+    /**
+     * Logs the stacktrace of a throwable for the {@link Level#INFO INFO} level.
+     *
+     * @param throwable The throwable to log
+     */
     public static void info(Throwable throwable) {
-        log(Level.INFO, throwable);
+        throwable.printStackTrace(INFO);
     }
 
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#INFO INFO} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
+    public static void info(String message, Throwable throwable) {
+        info(message);
+        info(throwable);
+    }
+
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#INFO INFO} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
     public static void info(Object message, Throwable throwable) {
-        log(Level.INFO, message, throwable);
+        info(message);
+        info(throwable);
     }
 
+    /**
+     * Prints an empty message to the {@link Level#WARN WARN} level, similar to {@link PrintStream#println()}.
+     */
     public static void warn() {
-        log(Level.WARN);
+        WARN.println();
     }
 
+    /**
+     * Logs a message for the {@link Level#WARN WARN} level.
+     *
+     * @param message The message to log
+     */
+    public static void warn(String message) {
+        WARN.println(message);
+    }
+
+    /**
+     * Logs a message for the {@link Level#WARN WARN} level.
+     *
+     * @param message The message to log
+     */
     public static void warn(Object message) {
-        log(Level.WARN, message);
+        WARN.println(message);
     }
 
+    /**
+     * Logs the stacktrace of a throwable for the {@link Level#WARN WARN} level.
+     *
+     * @param throwable The throwable to log
+     */
     public static void warn(Throwable throwable) {
-        log(Level.WARN, throwable);
+        throwable.printStackTrace(WARN);
     }
 
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#WARN WARN} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
+    public static void warn(String message, Throwable throwable) {
+        warn(message);
+        warn(throwable);
+    }
+
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#WARN WARN} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
     public static void warn(Object message, Throwable throwable) {
-        log(Level.WARN, message, throwable);
+        warn(message);
+        warn(throwable);
     }
 
+    /**
+     * Prints an empty message to the {@link Level#ERROR ERROR} level, similar to {@link PrintStream#println()}.
+     */
     public static void error() {
-        log(Level.ERROR);
+        ERROR.println();
     }
 
+    /**
+     * Logs a message for the {@link Level#ERROR ERROR} level.
+     *
+     * @param message The message to log
+     */
+    public static void error(String message) {
+        ERROR.println(message);
+    }
+
+    /**
+     * Logs a message for the {@link Level#ERROR ERROR} level.
+     *
+     * @param message The message to log
+     */
     public static void error(Object message) {
-        log(Level.ERROR, message);
+        ERROR.println(message);
     }
 
+    /**
+     * Logs the stacktrace of a throwable for the {@link Level#ERROR ERROR} level.
+     *
+     * @param throwable The throwable to log
+     */
     public static void error(Throwable throwable) {
-        log(Level.ERROR, throwable);
+        throwable.printStackTrace(ERROR);
     }
 
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#ERROR ERROR} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
+    public static void error(String message, Throwable throwable) {
+        error(message);
+        error(throwable);
+    }
+
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#ERROR ERROR} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
     public static void error(Object message, Throwable throwable) {
-        log(Level.ERROR, message, throwable);
+        error(message);
+        error(throwable);
     }
 
+    /**
+     * Prints an empty message to the {@link Level#FATAL FATAL} level, similar to {@link PrintStream#println()}.
+     */
     public static void fatal() {
-        log(Level.FATAL);
+        FATAL.println();
     }
 
+    /**
+     * Logs a message for the {@link Level#FATAL FATAL} level.
+     *
+     * @param message The message to log
+     */
+    public static void fatal(String message) {
+        FATAL.println(message);
+    }
+
+    /**
+     * Logs a message for the {@link Level#FATAL FATAL} level.
+     *
+     * @param message The message to log
+     */
     public static void fatal(Object message) {
-        log(Level.FATAL, message);
+        FATAL.println(message);
     }
 
+    /**
+     * Logs the stacktrace of a throwable for the {@link Level#FATAL FATAL} level.
+     *
+     * @param throwable The throwable to log
+     */
     public static void fatal(Throwable throwable) {
-        log(Level.FATAL, throwable);
+        throwable.printStackTrace(FATAL);
     }
 
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#FATAL FATAL} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
+    public static void fatal(String message, Throwable throwable) {
+        fatal(message);
+        fatal(throwable);
+    }
+
+    /**
+     * Logs a message and THEN the stacktrace of a throwable for the {@link Level#FATAL FATAL} level.
+     *
+     * @param message   The message to log
+     * @param throwable The throwable to log
+     */
     public static void fatal(Object message, Throwable throwable) {
-        log(Level.FATAL, message, throwable);
+        fatal(message);
+        fatal(throwable);
     }
 
     private Log() { }
