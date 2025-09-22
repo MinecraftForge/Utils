@@ -20,6 +20,7 @@ import static net.minecraftforge.util.hash.HashUtils.sneak;
 
 @NotNullByDefault
 public class HashStore {
+    private static final HashFunction HASH = HashFunction.sha1();
     private final String root;
     private final HashMap<String, String> oldHashes = new HashMap<>();
     private final HashMap<String, String> newHashes = new HashMap<>();
@@ -71,13 +72,13 @@ public class HashStore {
             String hash = oldHashes.get(path);
             if (hash == null) {
                 if (file.exists()) {
-                    newHashes.put(path, SHA1.INSTANCE.hash(file));
+                    newHashes.put(path, HASH.hash(file));
                     return false;
                 }
                 return true;
             }
 
-            String fileHash = SHA1.INSTANCE.hash(file);
+            String fileHash = HASH.hash(file);
             newHashes.put(path, fileHash);
             return fileHash.equals(hash);
         } catch (IOException e) {
@@ -119,13 +120,13 @@ public class HashStore {
 
     public HashStore add(String key, String data) {
         if (!data.isEmpty())
-            newHashes.put(Objects.requireNonNull(key), SHA1.INSTANCE.hash(data));
+            newHashes.put(Objects.requireNonNull(key), HASH.hash(data));
         return this;
     }
 
     public HashStore add(String key, byte[] data) {
         if (data.length > 0)
-            this.newHashes.put(Objects.requireNonNull(key), SHA1.INSTANCE.hash(data));
+            this.newHashes.put(Objects.requireNonNull(key), HASH.hash(data));
         return this;
     }
 
@@ -140,10 +141,10 @@ public class HashStore {
                 String prefix = getPath(file);
                 for (File f : listFiles(file)) {
                     String suffix = getPath(f).substring(prefix.length());
-                    this.newHashes.put(key + " - " + suffix, SHA1.INSTANCE.hash(f));
+                    this.newHashes.put(key + " - " + suffix, HASH.hash(f));
                 }
             } else {
-                this.newHashes.put(key, SHA1.INSTANCE.hash(file));
+                this.newHashes.put(key, HASH.hash(file));
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
