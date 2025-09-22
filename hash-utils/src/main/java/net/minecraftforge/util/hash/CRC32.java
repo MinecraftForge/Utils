@@ -6,8 +6,8 @@ package net.minecraftforge.util.hash;
 
 import java.util.zip.Checksum;
 
-public final class CRC32 extends ChecksumHashFunction {
-    public static final CRC32 INSTANCE = new CRC32();
+final class CRC32 extends ChecksumHashFunction {
+    static final CRC32 INSTANCE = new CRC32();
 
     @Override
     protected Checksum getHasher() {

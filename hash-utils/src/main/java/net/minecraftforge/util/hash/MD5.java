@@ -8,9 +8,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
-public final class MD5 extends MessageDigestHashFunction {
+final class MD5 extends MessageDigestHashFunction {
     private static final String PADDING = String.format(Locale.ENGLISH, "%032d", 0);
-    public static final MD5 INSTANCE = new MD5();
+    static final MD5 INSTANCE = new MD5();
 
     @Override
     protected MessageDigest getHasher() {
