@@ -6,8 +6,8 @@ package net.minecraftforge.util.hash;
 
 import java.util.zip.Checksum;
 
-public final class Adler32 extends ChecksumHashFunction {
-    public static final Adler32 INSTANCE = new Adler32();
+final class Adler32 extends ChecksumHashFunction {
+    static final Adler32 INSTANCE = new Adler32();
 
     @Override
     protected Checksum getHasher() {

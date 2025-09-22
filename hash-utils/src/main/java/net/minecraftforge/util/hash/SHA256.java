@@ -8,9 +8,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
-public final class SHA256 extends MessageDigestHashFunction {
+final class SHA256 extends MessageDigestHashFunction {
     private static final String PADDING = String.format(Locale.ENGLISH, "%064d", 0);
-    public static final SHA256 INSTANCE = new SHA256();
+    static final SHA256 INSTANCE = new SHA256();
 
     @Override
     protected MessageDigest getHasher() {
