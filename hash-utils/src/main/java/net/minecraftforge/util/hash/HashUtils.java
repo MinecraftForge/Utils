@@ -5,13 +5,8 @@
 package net.minecraftforge.util.hash;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.List;
 
 public final class HashUtils {
     /**
@@ -27,24 +22,9 @@ public final class HashUtils {
         if (file == null || !file.exists())
             return null;
 
-        MessageDigest[] digests = new MessageDigest[functions.length];
-        for (int x = 0; x < functions.length; x++)
-            digests[x] = functions[x].get();
-
-        byte[] buf = new byte[1024];
-        int count = -1;
-        try (FileInputStream stream = new FileInputStream(file)) {
-            while ((count = stream.read(buf)) != -1) {
-                for (MessageDigest digest : digests)
-                    digest.update(buf, 0, count);
-            }
-        }
-
         String[] ret = new String[functions.length];
         for (int x = 0; x < functions.length; x++) {
-            HashFunction func = functions[x];
-            MessageDigest digest = digests[x];
-            ret[x] = func.pad(new BigInteger(1, digest.digest()).toString(16));
+            ret[x] = functions[x].hash(file);
         }
         return ret;
     }
@@ -84,28 +64,6 @@ public final class HashUtils {
         }
     }
 
-    static List<File> listFiles(File path) {
-        return listFiles(path, new ArrayList<>());
-    }
-
-    private static List<File> listFiles(File dir, List<File> files) {
-        if (!dir.exists())
-            return files;
-
-        if (!dir.isDirectory())
-            throw new IllegalArgumentException("Path must be directory: " + dir.getAbsolutePath());
-
-        //noinspection DataFlowIssue - checked by File#isDirectory
-        for (File file : dir.listFiles()) {
-            if (file.isDirectory())
-                files = listFiles(file, files);
-            else
-                files.add(file);
-        }
-
-        return files;
-    }
-
     /**
      * Allows the given {@link Throwable} to be thrown without needing to declare it in the method signature or
      * arbitrarily checked at compile time.
@@ -116,7 +74,7 @@ public final class HashUtils {
      * @throws E Unconditionally thrown
      */
     @SuppressWarnings("unchecked")
-    static <R, E extends Throwable> R sneak(Throwable t) throws E {
+    public static <R, E extends Throwable> R sneak(Throwable t) throws E {
         throw (E) t;
     }
 
