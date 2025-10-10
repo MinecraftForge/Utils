@@ -1,32 +1,47 @@
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 rootProject.name = 'utils'
 
-include 'hash-utils', 'json-data-utils', 'file-utils', 'log-utils', 'download-utils'
+enableFeaturePreview 'TYPESAFE_PROJECT_ACCESSORS'
 
-dependencyResolutionManagement {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net/' }
-        mavenCentral()
-        mavenLocal()
-    }
+include 'hash-utils'
+include 'json-data-utils'
+include 'file-utils'
+include 'log-utils'
+include 'download-utils', 'download-utils:java11'
 
-    versionCatalogs.register('libs') {
-        // Plugins
-        plugin 'licenser', 'net.minecraftforge.licenser' version '1.2.0'
-        plugin 'gradleutils', 'net.minecraftforge.gradleutils' version '2.5.1'
-        plugin 'modules', 'org.gradlex.extra-java-module-info' version '1.8'
-
-        // Files
-        library 'commons-io', 'commons-io', 'commons-io' version '2.18.0'
-        library 'srgutils', 'net.minecraftforge', 'srgutils' version '0.5.11'
-
-        // Data
-        library 'gson', 'com.google.code.gson', 'gson' version '2.10.1'
-
-        // Static Analysis
-        library 'nulls', 'org.jetbrains', 'annotations' version '26.0.2'
+// Applying plugins causes them to not have any IDE support when also applied to any build.gradle files
+// The workaround for now is to use this listener here so that it can stay in settings.gradle
+// See: https://youtrack.jetbrains.com/issue/IDEA-332061/Gradle-Missing-Code-Completion-Suggestions-for-Settings-Plugins-in-Groovy-DSL
+gradle.beforeProject { Project project ->
+    project.pluginManager.withPlugin('net.minecraftforge.gradleutils') {
+        project.repositories {
+            mavenCentral()
+            gradlePluginPortal()
+            maven project.gradleutils.forgeMaven
+            //mavenLocal()
+        }
     }
 }
+
+//@formatter:off
+dependencyResolutionManagement.versionCatalogs.register('libs') {
+    // Plugins
+    plugin 'licenser',    'net.minecraftforge.licenser'    version '1.2.0'
+    plugin 'gradleutils', 'net.minecraftforge.gradleutils' version '3.3.18'
+    plugin 'gitversion',  'net.minecraftforge.gitversion'  version '3.1.1'
+    plugin 'changelog',   'net.minecraftforge.changelog'   version '3.1.2'
+
+    // Static Analysis
+    library 'nulls', 'org.jetbrains', 'annotations' version '26.0.2'
+
+    // Files
+    library 'commons-io', 'commons-io',         'commons-io' version '2.18.0'
+    library 'srgutils',   'net.minecraftforge', 'srgutils' version '0.5.11'
+
+    // Data
+    library 'gson', 'com.google.code.gson', 'gson' version '2.10.1'
+}
+//@formatter:on

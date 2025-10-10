@@ -1,13 +1,19 @@
+import org.gradle.api.plugins.jvm.JvmTestSuite
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     id 'java-library'
+    id 'jvm-test-suite'
     id 'idea'
+    id 'eclipse'
     id 'maven-publish'
     alias libs.plugins.licenser
     alias libs.plugins.gradleutils
+    alias libs.plugins.gitversion
+    alias libs.plugins.changelog
 }
 
-final projectDisplayName = 'Logging Utils'
-final projectVendor = 'Forge Development LLC'
+gradleutils.displayName = 'Logging Utils'
 description = 'General-purpose logging utilities for Forge-specific projects'
 group = 'net.minecraftforge'
 version = gitversion.tagOffset
@@ -15,7 +21,7 @@ version = gitversion.tagOffset
 println "Version: $version"
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of 8
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
     withSourcesJar()
 }
 
@@ -23,22 +29,25 @@ dependencies {
     compileOnly libs.nulls
 }
 
-tasks.named('jar', Jar) {
-    manifest {
-        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.logging')
-        attributes([
-            'Specification-Title'   : projectDisplayName,
-            'Specification-Vendor'  : projectVendor,
-            'Specification-Version' : gitversion.info.tag,
-            'Implementation-Title'  : projectDisplayName,
-            'Implementation-Vendor' : projectVendor,
-            'Implementation-Version': project.version
-        ], 'net/minecraftforge/util/logging/')
+testing {
+    suites.named('test', JvmTestSuite) {
+        useJUnitJupiter()
+
+        targets.configureEach {
+            testTask.configure {
+                // TODO [LogUtils][Testing] Remove once proper tests are in place
+                failOnNoDiscoveredTests = false
+            }
+        }
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+tasks.named('jar', Jar) {
+    manifest {
+        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.logging')
+
+        gradleutils.manifestDefaults(it, 'net/minecraftforge/util/logging/')
+    }
 }
 
 license {
@@ -49,35 +58,33 @@ license {
 
 changelog {
     fromBase()
-    publishAll = false
 }
 
 publishing {
+    repositories {
+        maven gradleutils.publishingForgeMaven
+    }
+
     publications.register('mavenJava', MavenPublication) {
         from components.java
 
-        artifactId = project.name
+        changelog.publish(it)
+        gradleutils.promote(it)
 
         pom { pom ->
-            name = projectDisplayName
+            name = gradleutils.displayName
             description = project.description
 
-            gradleutils.pom.setGitHubDetails pom
+            gradleutils.pom.addRemoteDetails(pom)
 
             licenses {
                 license gradleutils.pom.licenses.LGPLv2_1
             }
 
             developers {
-                developer gradleutils.pom.Developers.LexManos
-                developer gradleutils.pom.Developers.Jonathing
+                developer gradleutils.pom.developers.LexManos
+                developer gradleutils.pom.developers.Jonathing
             }
         }
     }
-
-    repositories {
-        maven gradleutils.publishingForgeMaven
-    }
 }
-
-idea.module { downloadSources = downloadJavadoc = true }

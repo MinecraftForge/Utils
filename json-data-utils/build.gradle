@@ -1,13 +1,15 @@
 plugins {
     id 'java-library'
     id 'idea'
+    id 'eclipse'
     id 'maven-publish'
     alias libs.plugins.licenser
     alias libs.plugins.gradleutils
+    alias libs.plugins.gitversion
+    alias libs.plugins.changelog
 }
 
-final projectDisplayName = 'JSON Data Utils'
-final projectVendor = 'Forge Development LLC'
+gradleutils.displayName = 'JSON Data Utils'
 description = 'Utilities for working with JSON data related to Forge projects and Minecraft'
 group = 'net.minecraftforge'
 version = gitversion.tagOffset
@@ -15,32 +17,22 @@ version = gitversion.tagOffset
 println "Version: $version"
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of 8
+    toolchain.languageVersion = JavaLanguageVersion.of(8)
     withSourcesJar()
 }
 
 dependencies {
-    api libs.gson
-
     compileOnly libs.nulls
+
+    api libs.gson
 }
 
 tasks.named('jar', Jar) {
     manifest {
         attributes('Automatic-Module-Name': 'net.minecraftforge.utils.json_data')
-        attributes([
-            'Specification-Title'   : projectDisplayName,
-            'Specification-Vendor'  : projectVendor,
-            'Specification-Version' : gitversion.info.tag,
-            'Implementation-Title'  : projectDisplayName,
-            'Implementation-Vendor' : projectVendor,
-            'Implementation-Version': project.version
-        ], 'net/minecraftforge/util/data/')
-    }
-}
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+        gradleutils.manifestDefaults(it, 'net/minecraftforge/util/data/')
+    }
 }
 
 license {
@@ -51,35 +43,33 @@ license {
 
 changelog {
     fromBase()
-    publishAll = false
 }
 
 publishing {
+    repositories {
+        maven gradleutils.publishingForgeMaven
+    }
+
     publications.register('mavenJava', MavenPublication) {
         from components.java
 
-        artifactId = project.name
+        changelog.publish(it)
+        gradleutils.promote(it)
 
         pom { pom ->
-            name = projectDisplayName
+            name = gradleutils.displayName
             description = project.description
 
-            gradleutils.pom.setGitHubDetails pom
+            gradleutils.pom.addRemoteDetails(pom)
 
             licenses {
                 license gradleutils.pom.licenses.LGPLv2_1
             }
 
             developers {
-                developer gradleutils.pom.Developers.LexManos
-                developer gradleutils.pom.Developers.Jonathing
+                developer gradleutils.pom.developers.LexManos
+                developer gradleutils.pom.developers.Jonathing
             }
         }
     }
-
-    repositories {
-        maven gradleutils.publishingForgeMaven
-    }
 }
-
-idea.module { downloadSources = downloadJavadoc = true }

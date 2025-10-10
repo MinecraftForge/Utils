@@ -1,13 +1,15 @@
 plugins {
     id 'java-library'
     id 'idea'
+    id 'eclipse'
     id 'maven-publish'
     alias libs.plugins.licenser
     alias libs.plugins.gradleutils
+    alias libs.plugins.gitversion
+    alias libs.plugins.changelog
 }
 
-final projectDisplayName = 'File Utils'
-final projectVendor = 'Forge Development LLC'
+gradleutils.displayName = 'File Utils'
 description = 'Common utilities for working with files and directories'
 group = 'net.minecraftforge'
 version = gitversion.tagOffset
@@ -15,7 +17,7 @@ version = gitversion.tagOffset
 println "Version: $version"
 
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of 17
+    toolchain.languageVersion = JavaLanguageVersion.of(17)
     withSourcesJar()
 }
 
@@ -27,19 +29,9 @@ dependencies {
 tasks.named('jar', Jar) {
     manifest {
         attributes('Automatic-Module-Name': 'net.minecraftforge.utils.file')
-        attributes([
-            'Specification-Title'   : projectDisplayName,
-            'Specification-Vendor'  : projectVendor,
-            'Specification-Version' : gitversion.info.tag,
-            'Implementation-Title'  : projectDisplayName,
-            'Implementation-Vendor' : projectVendor,
-            'Implementation-Version': project.version
-        ], 'net/minecraftforge/util/file/')
-    }
-}
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
+        gradleutils.manifestDefaults(it, 'net/minecraftforge/util/file/')
+    }
 }
 
 license {
@@ -50,20 +42,24 @@ license {
 
 changelog {
     fromBase()
-    publishAll = false
 }
 
 publishing {
+    repositories {
+        maven gradleutils.publishingForgeMaven
+    }
+
     publications.register('mavenJava', MavenPublication) {
         from components.java
 
-        artifactId = project.name
+        changelog.publish(it)
+        gradleutils.promote(it)
 
         pom { pom ->
-            name = projectDisplayName
+            name = gradleutils.displayName
             description = project.description
 
-            gradleutils.pom.setGitHubDetails pom
+            gradleutils.pom.addRemoteDetails(pom)
 
             licenses {
                 license gradleutils.pom.licenses.LGPLv2_1
@@ -75,10 +71,4 @@ publishing {
             }
         }
     }
-
-    repositories {
-        maven gradleutils.publishingForgeMaven
-    }
 }
-
-idea.module { downloadSources = downloadJavadoc = true }

@@ -1,0 +1,21 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'eclipse'
+    alias libs.plugins.licenser
+    alias libs.plugins.gradleutils
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(11)
+
+dependencies {
+    compileOnly libs.nulls
+
+    implementation projects.logUtils
+}
+
+license {
+    header = rootProject.file('LICENSE-header.txt')
+    newLine = false
+    exclude '**/*.properties'
+}
