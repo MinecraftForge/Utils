@@ -4,18 +4,15 @@
  */
 package net.minecraftforge.util.data.json;
 
-import net.minecraftforge.util.data.OS;
+import net.minecraftforge.util.os.OS;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 // TODO: [MCMaven][Documentation][MinecraftVersion] What in here is nullable?
 /** Represents a Minecraft version and its artifacts. */
@@ -136,20 +133,20 @@ public class MinecraftVersion {
         public static class OS {
             public String name;
 
-            public static net.minecraftforge.util.data.OS toOS(String name) {
+            public static net.minecraftforge.util.os.OS toOS(String name) {
                 switch (name) {
                     case "windows":
-                        return net.minecraftforge.util.data.OS.WINDOWS;
+                        return net.minecraftforge.util.os.OS.WINDOWS;
                     case "linux":
-                        return net.minecraftforge.util.data.OS.LINUX;
+                        return net.minecraftforge.util.os.OS.LINUX;
                     case "osx":
-                        return net.minecraftforge.util.data.OS.MACOS;
+                        return net.minecraftforge.util.os.OS.MACOS;
                     default:
-                        return net.minecraftforge.util.data.OS.UNKNOWN;
+                        return net.minecraftforge.util.os.OS.UNKNOWN;
                 }
             }
 
-            public net.minecraftforge.util.data.OS toOS() {
+            public net.minecraftforge.util.os.OS toOS() {
                 return toOS(this.name);
             }
         }

@@ -9,8 +9,8 @@ plugins {
     alias libs.plugins.changelog
 }
 
-gradleutils.displayName = 'JSON Data Utils'
-description = 'Utilities for working with JSON data related to Forge projects and Minecraft'
+gradleutils.displayName = 'OS Utils'
+description = 'Utilities for identifying operating systems, architectures, and their defaults.'
 group = 'net.minecraftforge'
 version = gitversion.tagOffset
 
@@ -19,20 +19,18 @@ println "Version: $version"
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(8)
     withSourcesJar()
+    //withJavadocJar()
 }
 
 dependencies {
     compileOnly libs.nulls
-
-    api libs.gson
-    api projects.osUtils
 }
 
 tasks.named('jar', Jar) {
     manifest {
-        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.json_data')
+        attributes('Automatic-Module-Name': 'net.minecraftforge.utils.os')
 
-        gradleutils.manifestDefaults(it, 'net/minecraftforge/util/data/')
+        gradleutils.manifestDefaults(it, 'net/minecraftforge/util/os/')
     }
 }
 

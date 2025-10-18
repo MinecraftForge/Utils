@@ -10,6 +10,7 @@ include 'hash-utils'
 include 'json-data-utils'
 include 'file-utils'
 include 'log-utils'
+include 'os-utils'
 include 'download-utils', 'download-utils:java11'
 
 // Applying plugins causes them to not have any IDE support when also applied to any build.gradle files
