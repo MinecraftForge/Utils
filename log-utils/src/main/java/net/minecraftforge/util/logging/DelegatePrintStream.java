@@ -9,16 +9,16 @@ import java.io.PrintStream;
 import java.util.function.Consumer;
 
 interface DelegatePrintStream {
-    PrintStream EMPTY = new Empty();
+    DelegatePrintStream.Empty EMPTY = new Empty();
 
-    PrintStream getDelegate();
+    Consumer<? super String> getDelegate();
 
     final class Capturing extends PrintStream implements DelegatePrintStream {
-        private final PrintStream raw;
+        private final Consumer<? super String> delegate;
 
-        public Capturing(Log.Level level, PrintStream stream) {
+        public Capturing(AbstractLogger logger, Logger.Level level, Consumer<? super String> output) {
             super(new OutputStream() {
-                private final Consumer<String> logger = new LogConsumer(level, stream::println);
+                private final Consumer<? super String> consumer = new LogConsumer(logger, level, output);
                 private StringBuffer buffer = new StringBuffer(512);
 
                 @Override
@@ -29,7 +29,7 @@ interface DelegatePrintStream {
                 private void write(char c) {
                     if (c == '\n' || c == '\r') {
                         if (this.buffer.length() != 0) {
-                            logger.accept(this.buffer.insert(0, Log.getIndentation()).toString());
+                            consumer.accept(this.buffer.insert(0, logger.getIndentation()).toString());
                             this.buffer = new StringBuffer(512);
                         }
                     } else {
@@ -38,12 +38,12 @@ interface DelegatePrintStream {
                 }
             });
 
-            this.raw = stream;
+            this.delegate = output;
         }
 
         @Override
-        public PrintStream getDelegate() {
-            return this.raw;
+        public Consumer<? super String> getDelegate() {
+            return this.delegate;
         }
     }
 
@@ -64,8 +64,8 @@ interface DelegatePrintStream {
         protected void clearError() { }
 
         @Override
-        public PrintStream getDelegate() {
-            return this;
+        public Consumer<? super String> getDelegate() {
+            return s -> {};
         }
     }
 }
