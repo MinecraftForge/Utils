@@ -7,6 +7,7 @@ plugins {
     alias libs.plugins.gradleutils
     alias libs.plugins.gitversion
     alias libs.plugins.changelog
+    alias libs.plugins.multi.release
 }
 
 gradleutils.displayName = 'Download Utils'
@@ -23,33 +24,26 @@ java {
 
 dependencies {
     compileOnly libs.nulls
-
-    implementation projects.logUtils
 }
 
-final java11 = configurations.detachedConfiguration(
-    dependencies.create(projects.downloadUtils.java11) {
-        transitive = false
-    }
-)
-
 tasks.named('jar', Jar) {
-    dependsOn java11.buildDependencies
-
     manifest {
         attributes([
-            'Automatic-Module-Name': 'net.minecraftforge.utils.download',
-            'Multi-Release'        : 'true'
+            'Automatic-Module-Name': 'net.minecraftforge.utils.download'
         ])
 
         gradleutils.manifestDefaults(it, 'net/minecraftforge/util/download/')
     }
 
-    into('META-INF/versions/11') {
-        from(provider { zipTree(java11.singleFile) }) {
-            exclude 'META-INF/**'
-        }
-    }
+    archiveClassifier = 'java8'
+}
+
+multiRelease.register {
+    add(JavaLanguageVersion.of(11), projects.downloadUtils.downloadUtilsJ11)
+}
+
+tasks.named('multiReleaseJar', Jar) {
+    archiveClassifier = ''
 }
 
 license {
@@ -68,7 +62,7 @@ publishing {
     }
 
     publications.register('mavenJava', MavenPublication).configure {
-        from components.java
+        from multiRelease.component
 
         changelog.publish(it)
         gradleutils.promote(it)

@@ -10,8 +10,6 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(11)
 
 dependencies {
     compileOnly libs.nulls
-
-    implementation projects.logUtils
 }
 
 license {
