@@ -4,7 +4,6 @@
  */
 package net.minecraftforge.util.hash;
 
-import net.minecraftforge.util.logging.Log;
 import org.jetbrains.annotations.NotNullByDefault;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,8 +99,9 @@ public class HashStore {
                 String[] split = line.split("=");
                 oldHashes.put(split[0], split[1]);
             }
-        } catch (IOException e) {
-            Log.warn("Failed to read cache file. It will be ignored. : " + e.getMessage());
+        } catch (IOException ignored) {
+            // TODO [HashUtils] Make a way to properly inform consumer on cache miss
+            //System.err.println("Failed to read cache file. It will be ignored. : " + e.getMessage());
         }
 
         return this;

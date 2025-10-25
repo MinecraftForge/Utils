@@ -23,8 +23,6 @@ java {
 
 dependencies {
     compileOnly libs.nulls
-
-    implementation projects.logUtils
 }
 
 tasks.named('jar', Jar) {
