@@ -11,16 +11,8 @@ final class DefaultLogger extends AbstractLogger {
         super();
     }
 
-    DefaultLogger(byte indentLevel) {
-        super(indentLevel);
-    }
-
-    DefaultLogger(Level enabled) {
-        super(enabled);
-    }
-
-    DefaultLogger(Level enabled, byte indentLevel) {
-        super(enabled, indentLevel);
+    DefaultLogger(String tag) {
+        super(tag);
     }
 
     private final DelegatePrintStream.Capturing debug = new DelegatePrintStream.Capturing(this, Level.DEBUG, System.out::println);

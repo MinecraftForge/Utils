@@ -7,7 +7,6 @@ package net.minecraftforge.util.logging;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.PrintStream;
-import java.util.function.BiConsumer;
 
 public interface Logger {
     /* CREATION */
@@ -16,16 +15,8 @@ public interface Logger {
         return new DefaultLogger();
     }
 
-    static Logger create(byte indentLevel) {
-        return new DefaultLogger(indentLevel);
-    }
-
-    static Logger create(Level enabled) {
-        return new DefaultLogger(enabled);
-    }
-
-    static Logger create(Level enabled, byte indentLevel) {
-        return new DefaultLogger(enabled, indentLevel);
+    static Logger create(String tag) {
+        return new DefaultLogger(tag);
     }
 
     /* LOG LEVELS */
@@ -35,24 +26,31 @@ public interface Logger {
         DEBUG, QUIET, INFO, WARN, ERROR, FATAL
     }
 
-    @Nullable Level getEnabled();
+    default @Nullable Level getEnabled() {
+        return AbstractLogger.getEnabledImpl();
+    }
 
-    void setEnabled(@Nullable Level level);
+    default void setEnabled(@Nullable Level level) {
+        AbstractLogger.setEnabledImpl(level);
+    }
 
     default boolean isEnabled(Level level) {
-        Level enabled = this.getEnabled();
-        return enabled != null && level.compareTo(enabled) >= 0;
+        return AbstractLogger.isEnabledImpl(level);
     }
 
     /* INDENTATIONS */
 
-    byte push();
+    default byte push() {
+        return AbstractLogger.pushImpl();
+    }
 
-    byte pop();
+    default byte pop() {
+        return AbstractLogger.popImpl();
+    }
 
-    byte pop(byte indent);
-
-    String getIndentation();
+    default byte pop(byte indent) {
+        return AbstractLogger.popImpl(indent);
+    }
 
     /* CAPTURING */
 
@@ -62,7 +60,9 @@ public interface Logger {
      * @return The capturing state of the Log
      * @see #capture()
      */
-    boolean isCapturing();
+    default boolean isCapturing() {
+        return AbstractLogger.isCapturingImpl();
+    }
 
     /**
      * Begins capturing log messages.
@@ -70,30 +70,27 @@ public interface Logger {
      * {@linkplain #release() released} to be printed on the screen or {@linkplain #drop() dropped} to be removed and
      * never printed.</p>
      */
-    void capture();
+    default void capture() {
+        AbstractLogger.captureImpl();
+    }
 
     /**
      * Drops all captured log messages and stops capturing.
      *
      * @see #capture()
      */
-    void drop();
+    default void drop() {
+        AbstractLogger.dropImpl();
+    }
 
     /**
-     * Releases all captured log messages (using {@link #log(Level, Object)}), then stops capturing.
+     * Releases all captured log messages by printing them to console, then stops capturing.
      *
      * @see #capture()
-     * @see #release(BiConsumer)
      */
-    void release();
-
-    /**
-     * Releases all captured log messages into the given consumer, then stops capturing.
-     *
-     * @param consumer The consumer to release the captured log messages to
-     * @see #capture()
-     */
-    void release(BiConsumer<Level, String> consumer);
+    default void release() {
+        AbstractLogger.releaseImpl();
+    }
 
     /* LOGGING */
 

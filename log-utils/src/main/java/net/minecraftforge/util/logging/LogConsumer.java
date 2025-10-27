@@ -7,24 +7,22 @@ package net.minecraftforge.util.logging;
 import java.util.function.Consumer;
 
 final class LogConsumer implements Consumer<String> {
-    private final AbstractLogger logger;
     private final Logger.Level level;
     private final Consumer<? super String> output;
 
-    LogConsumer(AbstractLogger logger, Logger.Level level, Consumer<? super String> output) {
-        this.logger = logger;
+    LogConsumer(Logger.Level level, Consumer<? super String> output) {
         this.level = level;
         this.output = output;
     }
 
     private boolean isEnabled() {
-        return this.logger.isEnabled(this.level);
+        return AbstractLogger.isEnabledImpl(this.level);
     }
 
     @Override
     public void accept(String message) {
         if (!this.isEnabled()) return;
 
-        this.logger.tryCapture(this.output, this.level, message);
+        AbstractLogger.tryCapture(this.output, message);
     }
 }

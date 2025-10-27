@@ -7,83 +7,73 @@ package net.minecraftforge.util.logging;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
 public abstract class AbstractLogger implements Logger {
     /* CREATION */
 
     protected AbstractLogger() {
-        this(Level.INFO, (byte) 0);
+        this.tag = "";
     }
 
-    protected AbstractLogger(byte indentLevel) {
-        this(Level.INFO, indentLevel);
-    }
-
-    protected AbstractLogger(Level enabled) {
-        this(enabled, (byte) 0);
-    }
-
-    protected AbstractLogger(Level enabled, byte indentLevel) {
-        this.enabled = enabled;
-        this.indentLevel = indentLevel;
+    protected AbstractLogger(String tag) {
+        this.tag = '[' + tag + "] ";
     }
 
     /* LOG LEVELS */
 
-    private @Nullable Level enabled;
+    private static @Nullable Level enabled = Level.INFO;
 
-    @Override
-    public final @Nullable Level getEnabled() {
-        return this.enabled;
+    static @Nullable Level getEnabledImpl() {
+        return enabled;
     }
 
-    @Override
-    public final void setEnabled(@Nullable Level level) {
-        this.enabled = level;
+    static void setEnabledImpl(@Nullable Level level) {
+        enabled = level;
     }
+
+    static boolean isEnabledImpl(Level level) {
+        return enabled != null && level.compareTo(enabled) >= 0;
+    }
+
+    /* TAGGING */
+
+    final String tag;
 
     /* INDENTATIONS */
 
     private static final String INDENT_STRING = "  ";
-    private static final String[] INDENT_CACHE = new String[Byte.MAX_VALUE];
-    private byte indentLevel;
+    private static final @Nullable String[] INDENT_CACHE = new String[Byte.MAX_VALUE];
+    private static byte indentLevel;
 
     static {
         INDENT_CACHE[0] = "";
         INDENT_CACHE[1] = INDENT_STRING;
     }
 
-    @Override
-    public final byte push() {
+    static byte pushImpl() {
         return indentLevel++;
     }
 
-    @Override
-    public final byte pop() {
+    static byte popImpl() {
         if (--indentLevel < 0)
             throw new IllegalStateException("Cannot pop Log below 0");
 
         return indentLevel;
     }
 
-    @Override
-    public final byte pop(byte indent) {
+    static byte popImpl(byte indent) {
         if (indent < 0)
             throw new IllegalArgumentException("Cannot pop Log below 0");
 
         return indentLevel = indent;
     }
 
-    @Override
-    public final String getIndentation() {
+    final String getIndentationImpl() {
         String ret = INDENT_CACHE[indentLevel];
-        //noinspection ConstantValue -- IntelliJ skill issue
         return ret == null ? INDENT_CACHE[indentLevel] = getIndentation(indentLevel) : ret;
     }
 
@@ -96,53 +86,38 @@ public abstract class AbstractLogger implements Logger {
 
     /* CAPTURING */
 
-    private @Nullable List<Map.Entry<Level, String>> captured;
+    private static @Nullable Queue<Map.Entry<Consumer<? super String>, String>> captured;
 
-    @Override
-    public final boolean isCapturing() {
+    static boolean isCapturingImpl() {
         return captured != null;
     }
 
-    @Override
-    public final void capture() {
+    static void captureImpl() {
         if (captured != null) return;
-        captured = new ArrayList<>(128);
+        captured = new ConcurrentLinkedQueue<>();
     }
 
-    final void tryCapture(Consumer<? super String> logger, Level level, String message) {
+    static void tryCapture(Consumer<? super String> logger, String message) {
         if (captured != null)
-            captured.add(new AbstractMap.SimpleImmutableEntry<>(level, message));
+            captured.add(new AbstractMap.SimpleImmutableEntry<>(logger, message));
         else
             logger.accept(message);
     }
 
-    @Override
-    public final void drop() {
+    static void dropImpl() {
         captured = null;
     }
 
-    @Override
-    public final void release() {
-        release(this::logDirectly);
-    }
-
-    @Override
-    public final void release(BiConsumer<Level, String> consumer) {
+    static void releaseImpl() {
         if (captured == null) return;
 
-        Iterator<Map.Entry<Level, String>> itor = captured.iterator();
-        captured = null;
-        while (itor.hasNext()) {
-            Map.Entry<Level, String> capture = itor.next();
-            consumer.accept(capture.getKey(), capture.getValue());
+        for (Map.Entry<Consumer<? super String>, String> capture : captured) {
+            capture.getKey().accept(capture.getValue());
         }
+        captured = null;
     }
 
     /* LOGGING */
 
     static final DelegatePrintStream.Empty EMPTY = DelegatePrintStream.EMPTY;
-
-    private void logDirectly(Level level, String message) {
-        ((DelegatePrintStream) this.getLog(level)).getDelegate().accept(message);
-    }
 }

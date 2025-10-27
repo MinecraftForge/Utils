@@ -18,7 +18,7 @@ interface DelegatePrintStream {
 
         public Capturing(AbstractLogger logger, Logger.Level level, Consumer<? super String> output) {
             super(new OutputStream() {
-                private final Consumer<? super String> consumer = new LogConsumer(logger, level, output);
+                private final Consumer<? super String> consumer = new LogConsumer(level, output);
                 private StringBuffer buffer = new StringBuffer(512);
 
                 @Override
@@ -29,7 +29,7 @@ interface DelegatePrintStream {
                 private void write(char c) {
                     if (c == '\n' || c == '\r') {
                         if (this.buffer.length() != 0) {
-                            consumer.accept(this.buffer.insert(0, logger.getIndentation()).toString());
+                            consumer.accept(this.buffer.insert(0, logger.getIndentationImpl() + logger.tag).toString());
                             this.buffer = new StringBuffer(512);
                         }
                     } else {
