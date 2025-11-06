@@ -4,6 +4,9 @@
  */
 package net.minecraftforge.util.data.json;
 
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -81,6 +84,9 @@ public class PatcherConfig extends Config {
         public Boolean notchObf; //This is a Boolean so we can set to null and it won't be printed in the json.
         public List<String> universalFilters;
         public List<String> modules; // Modules passed to --module-path
+        @Deprecated
+        @ApiStatus.ScheduledForRemoval(inVersion = "V3")
+        public ScopedDependencies extraDependencies;
         public String sourceFileCharset; // = StandardCharsets.UTF_8.name();
 
         public V2(PatcherConfig o) {
@@ -108,6 +114,12 @@ public class PatcherConfig extends Config {
 
         public boolean notchObf() {
             return this.notchObf != null && this.notchObf;
+        }
+
+        public final static class ScopedDependencies {
+            public @Nullable List<String> runtimeOnly;
+            public @Nullable List<String> compileOnly;
+            public @Nullable List<String> annotationProcessor;
         }
     }
 }
