@@ -12,20 +12,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 import static net.minecraftforge.util.hash.HashUtils.sneak;
 
 @NotNullByDefault
 public class HashStore {
-    private static final HashFunction HASH = HashFunction.SHA1;
-
+    private static final HashFunction HASH = HashFunction.sha1();
     private final String root;
-    private final Map<String, String> oldHashes = new HashMap<>();
-    private final Map<String, String> newHashes = new HashMap<>();
+    private final HashMap<String, String> oldHashes = new HashMap<>();
+    private final HashMap<String, String> newHashes = new HashMap<>();
     private @Nullable File target;
     private boolean saved;
 
@@ -96,7 +93,7 @@ public class HashStore {
 
         try {
             for (String line : Files.readAllLines(file.toPath())) {
-                String[] split = line.split("=");
+                String[] split = line.split("=", 2);
                 oldHashes.put(split[0], split[1]);
             }
         } catch (IOException ignored) {
@@ -142,7 +139,7 @@ public class HashStore {
 
             if (file.isDirectory()) {
                 String prefix = getPath(file);
-                for (File f : HashUtils.listFiles(file)) {
+                for (File f : listFiles(file)) {
                     String suffix = getPath(f).substring(prefix.length());
                     this.newHashes.put(key + " - " + suffix, HASH.hash(f));
                 }
@@ -189,9 +186,9 @@ public class HashStore {
     }
 
     public void save(File file) {
-        StringBuilder buf = new StringBuilder();
         ArrayList<String> keys = new ArrayList<>(this.newHashes.keySet());
-        Collections.sort(keys);
+        keys.sort(null);
+        StringBuilder buf = new StringBuilder((keys.size() + 2) * 64); // rough estimate of size
 
         for (String key : keys)
             buf.append(key).append('=').append(this.newHashes.get(key)).append('\n');
@@ -206,6 +203,28 @@ public class HashStore {
 
     public boolean isSaved() {
         return this.saved;
+    }
+
+    private static ArrayList<File> listFiles(File path) {
+        return listFiles(path, new ArrayList<>());
+    }
+
+    private static ArrayList<File> listFiles(File dir, ArrayList<File> files) {
+        if (!dir.exists())
+            return files;
+
+        if (!dir.isDirectory())
+            throw new IllegalArgumentException("Path must be directory: " + dir.getAbsolutePath());
+
+        //noinspection DataFlowIssue - checked by File#isDirectory
+        for (File file : dir.listFiles()) {
+            if (file.isDirectory())
+                files = listFiles(file, files);
+            else
+                files.add(file);
+        }
+
+        return files;
     }
 
     private String getPath(File file) {
