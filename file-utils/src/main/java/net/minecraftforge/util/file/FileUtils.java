@@ -162,6 +162,8 @@ public final class FileUtils {
 
                 if (input.isDirectory()) {
                     var prefix = input.getAbsolutePath();
+                    if (!prefix.endsWith(File.separator))
+                        prefix += File.separatorChar;
                     for (var file : FileUtils.listFiles(input)) {
                         var name = file.getAbsolutePath().substring(prefix.length()).replace('\\', '/');
 
