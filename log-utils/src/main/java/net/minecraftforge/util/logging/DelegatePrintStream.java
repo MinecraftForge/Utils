@@ -20,6 +20,7 @@ interface DelegatePrintStream {
             super(new OutputStream() {
                 private final Consumer<? super String> consumer = new LogConsumer(level, output);
                 private StringBuffer buffer = new StringBuffer(512);
+                private char last = 0;
 
                 @Override
                 public void write(int b) {
@@ -28,13 +29,15 @@ interface DelegatePrintStream {
 
                 private void write(char c) {
                     if (c == '\n' || c == '\r') {
-                        if (this.buffer.length() != 0) {
+                        // Prevent \r\n (windows) from making two lines
+                        if (last != '\r') {
                             consumer.accept(this.buffer.insert(0, logger.getIndentationImpl() + logger.tag).toString());
                             this.buffer = new StringBuffer(512);
                         }
                     } else {
                         this.buffer.append(c);
                     }
+                    this.last = c;
                 }
             });
 
