@@ -79,6 +79,7 @@ public final class HashUtils {
             for (int x = 0; x < functions.length; x++) {
                 HashFunction func = functions[x];
                 File cache = new File(target.getAbsolutePath() + "." + func.extension());
+                Files.createDirectories(cache.getParentFile().toPath());
                 Files.write(cache.toPath(), hashes[x].getBytes());
             }
         }

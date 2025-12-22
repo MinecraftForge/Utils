@@ -197,6 +197,7 @@ public class HashStore {
             buf.append(key).append('=').append(this.newHashes.get(key)).append('\n');
 
         try {
+            Files.createDirectories(file.getParentFile().toPath());
             Files.write(file.toPath(), buf.toString().getBytes(StandardCharsets.UTF_8));
             this.saved = true;
         } catch (IOException e) {
