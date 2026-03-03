@@ -24,14 +24,23 @@ public class LauncherManifest {
 
     /**
      * @param version The Minecraft version
-     * @return The URL for a specific version of the game
+     * @return The version entry from this manifest, null if no matching value could be found
      */
-    public URL getUrl(String version) {
+    public @Nullable VersionInfo getInfo(String version) {
         if (version == null || versions == null)
             return null;
         for (VersionInfo info : versions)
             if (version.equals(info.id))
-                return info.url;
+                return info;
         return null;
+    }
+
+    /**
+     * @param version The Minecraft version
+     * @return The URL for a specific version of the game
+     */
+    public URL getUrl(String version) {
+        VersionInfo info = getInfo(version);
+        return info == null ? null : info.url;
     }
 }
