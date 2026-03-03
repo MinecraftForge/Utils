@@ -6,6 +6,8 @@ package net.minecraftforge.util.data.json;
 
 import java.net.URL;
 
+import org.jetbrains.annotations.Nullable;
+
 /** Represents the launcher manifest for Minecraft versions. */
 public class LauncherManifest {
     /** All Minecraft version manifest infos. */
@@ -15,6 +17,9 @@ public class LauncherManifest {
     public static class VersionInfo {
         public String id;
         public URL url;
+        /** Added in version_manifest_v2.json, so possibly null. */
+        @Nullable
+        public String sha1;
     }
 
     /**
