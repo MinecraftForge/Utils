@@ -63,7 +63,7 @@ abstract class MessageDigestHashFunction extends HashFunction {
         return new String(chars);
     }
 
-    private class Instance implements HashInstance {
+    private final class Instance implements HashInstance {
         private final MessageDigest digest;
 
         private Instance(MessageDigest digest) {

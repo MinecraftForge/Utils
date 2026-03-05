@@ -61,7 +61,7 @@ abstract class ChecksumHashFunction extends HashFunction {
         return (PADDING + hash).substring(hash.length());
     }
 
-    private class Instance implements HashInstance {
+    private final class Instance implements HashInstance {
         private final Checksum checksum;
 
         private Instance(Checksum checksum) {
