@@ -15,6 +15,11 @@ import java.util.Locale;
 public abstract class HashFunction implements Iterable<HashFunction> {
     public abstract String extension();
 
+    /*
+     * Retreives a new instance that can be used for incremental hashing.
+     */
+    public abstract HashInstance instance();
+
     public final String hash(File file) throws IOException {
         try (FileInputStream fin = new FileInputStream(file)) {
             return hash(fin);

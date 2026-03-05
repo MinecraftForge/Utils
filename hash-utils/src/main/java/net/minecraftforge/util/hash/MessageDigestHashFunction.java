@@ -16,6 +16,11 @@ abstract class MessageDigestHashFunction extends HashFunction {
     protected abstract MessageDigest getHasher();
 
     @Override
+    public HashInstance instance() {
+        return new Instance(getHasher());
+    }
+
+    @Override
     public final String hash(Iterable<File> files) throws IOException {
         MessageDigest hasher = getHasher();
         byte[] buffer = new byte[8192];
@@ -56,5 +61,23 @@ abstract class MessageDigestHashFunction extends HashFunction {
             chars[j * 2 + 1] = HEX_CHARS[v & 0x0F];
         }
         return new String(chars);
+    }
+
+    private class Instance implements HashInstance {
+        private final MessageDigest digest;
+
+        private Instance(MessageDigest digest) {
+            this.digest = digest;
+        }
+
+        @Override
+        public void update(byte[] data, int offset, int length) {
+            digest.update(data, offset, length);
+        }
+
+        @Override
+        public String finish() {
+            return MessageDigestHashFunction.this.pad(bytesToHexString(digest.digest()));
+        }
     }
 }

@@ -5,6 +5,7 @@
 package net.minecraftforge.util.hash;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -22,10 +23,23 @@ public final class HashUtils {
         if (file == null || !file.exists())
             return null;
 
-        String[] ret = new String[functions.length];
-        for (int x = 0; x < functions.length; x++) {
-            ret[x] = functions[x].hash(file);
+        HashInstance[] digests = new HashInstance[functions.length];
+        for (int x = 0; x < functions.length; x++)
+            digests[x] = functions[x].instance();
+
+        byte[] buf = new byte[1024];
+        int count = -1;
+        try (FileInputStream stream = new FileInputStream(file)) {
+            while ((count = stream.read(buf)) != -1) {
+                for (HashInstance digest : digests)
+                    digest.update(buf, 0, count);
+            }
         }
+
+        String[] ret = new String[functions.length];
+        for (int x = 0; x < functions.length; x++)
+            ret[x] = digests[x].finish();
+
         return ret;
     }
 

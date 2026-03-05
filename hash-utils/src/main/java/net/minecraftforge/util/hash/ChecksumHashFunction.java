@@ -12,9 +12,14 @@ import java.util.Locale;
 import java.util.zip.Checksum;
 
 abstract class ChecksumHashFunction extends HashFunction {
-    private static final String PADDING = String.format(Locale.ENGLISH, "%032d", 0);
+    private static final String PADDING = String.format(Locale.ENGLISH, "%08d", 0); // Both adler and crc are 32-bit
 
     protected abstract Checksum getHasher();
+
+    @Override
+    public HashInstance instance() {
+        return new Instance(getHasher());
+    }
 
     @Override
     public final String hash(Iterable<File> files) throws IOException {
@@ -54,5 +59,23 @@ abstract class ChecksumHashFunction extends HashFunction {
     @Override
     public final String pad(String hash) {
         return (PADDING + hash).substring(hash.length());
+    }
+
+    private class Instance implements HashInstance {
+        private final Checksum checksum;
+
+        private Instance(Checksum checksum) {
+            this.checksum = checksum;
+        }
+
+        @Override
+        public void update(byte[] data, int offset, int length) {
+            checksum.update(data, offset, length);
+        }
+
+        @Override
+        public String finish() {
+            return ChecksumHashFunction.this.pad(Long.toHexString(checksum.getValue()));
+        }
     }
 }
