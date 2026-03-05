@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
@@ -25,6 +26,7 @@ public class HashStore {
     private final HashMap<String, String> newHashes = new HashMap<>();
     private @Nullable File target;
     private boolean saved;
+    private boolean timestamps = false;
 
     public static HashStore fromFile(File path) {
         File parent = path.getAbsoluteFile().getParentFile();
@@ -47,6 +49,25 @@ public class HashStore {
 
     private HashStore(String root) {
         this.root = root;
+    }
+
+    /**
+     * Use file size and last-modified timestamps instead of hashing the contents of files.
+     * Note: This stores the file size and last modified time, which has a resolution of 1ms on most operating systems.
+     * So it IS possible for this to not properly detect changes if the file is modified, but the timestamp is kept the same.
+     */
+    public HashStore timestamps() {
+        return timestamps(true);
+    }
+
+    /**
+     * Sets wither to use file size and last-modified timestamps or hashing the contents of files.
+     * Note: This stores the file size and last modified time, which has a resolution of 1ms on most operating systems.
+     * So it IS possible for this to not properly detect changes if the file is modified, but the timestamp is kept the same.
+     */
+    public HashStore timestamps(boolean value) {
+        this.timestamps = value;
+        return this;
     }
 
     public boolean areSame(File... files) {
@@ -141,15 +162,26 @@ public class HashStore {
                 String prefix = getPath(file);
                 for (File f : listFiles(file)) {
                     String suffix = getPath(f).substring(prefix.length());
-                    this.newHashes.put(key + " - " + suffix, HASH.hash(f));
+                    addFile(key + " - " + suffix, f);
                 }
             } else {
-                this.newHashes.put(key, HASH.hash(file));
+                addFile(key, file);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return this;
+    }
+
+    private void addFile(String key, File file) throws IOException {
+        String value;
+        if (this.timestamps) {
+            // Use this over file.lastModified() so we get IOExceptions if the file doesn't exist
+            FileTime lastModified = Files.getLastModifiedTime(file.toPath());
+            value = file.length() + "-" + lastModified.toMillis();
+        } else
+            value = HASH.hash(file);
+        this.newHashes.put(key, value);
     }
 
     public HashStore add(File... files) {
@@ -176,6 +208,21 @@ public class HashStore {
     /** Clears the new hashes, does not clear the old hashes read from {@link #load(File)}. */
     public HashStore clear() {
         this.newHashes.clear();
+        return this;
+    }
+
+    /** Clears the old hashes loaded from {@link #load(File) load}, {@link #fromFile(File) fromFile}, or {@link #fromDir(File) fromDir} */
+    public HashStore invalidate() {
+        return invalidate(true);
+    }
+
+    /**
+     * Conditionally Clears the old hashes loaded from {@link #load(File) load}, {@link #fromFile(File) fromFile}, or {@link #fromDir(File) fromDir}.
+     * This is meant as a builder type helper
+     */
+    public HashStore invalidate(boolean value) {
+        if (value)
+            this.oldHashes.clear();
         return this;
     }
 
