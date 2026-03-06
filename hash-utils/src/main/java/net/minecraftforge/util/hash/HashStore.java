@@ -232,17 +232,45 @@ public class HashStore {
         save(this.target);
     }
 
-    public void save(File file) {
-        ArrayList<String> keys = new ArrayList<>(this.newHashes.keySet());
+    /**
+     * Returns a String representation of the old hashes, as if they were written to disc.
+     * This is exposed for debugging purposes only
+     */
+    public String dumpOld() {
+        return dump(this.oldHashes, false);
+    }
+
+    /**
+     * Returns a String representation of the old hashes, as if they were written to disc.
+     * This is exposed for debugging purposes only
+     */
+    public String dump() {
+        return dump(this.newHashes, false);
+    }
+
+    private static String dump(HashMap<String, String> data, boolean newLine) {
+        if (data.isEmpty())
+            return "";
+
+        ArrayList<String> keys = new ArrayList<>(data.keySet());
         keys.sort(null);
         StringBuilder buf = new StringBuilder((keys.size() + 2) * 64); // rough estimate of size
 
-        for (String key : keys)
-            buf.append(key).append('=').append(this.newHashes.get(key)).append('\n');
+        for (String key : keys) {
+            if (buf.length() > 0)
+                buf.append('\n');
+            buf.append(key).append('=').append(data.get(key));
+        }
 
+        if (newLine)
+            buf.append('\n');
+        return buf.toString();
+    }
+
+    public void save(File file) {
         try {
             Files.createDirectories(file.getParentFile().toPath());
-            Files.write(file.toPath(), buf.toString().getBytes(StandardCharsets.UTF_8));
+            Files.write(file.toPath(), dump(this.newHashes, true).getBytes(StandardCharsets.UTF_8));
             this.saved = true;
         } catch (IOException e) {
             sneak(e);

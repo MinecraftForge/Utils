@@ -22,28 +22,17 @@ public class HashStoreTest {
     private static void isSame(HashStore cache, File file) throws IOException {
         if (cache.isSame())
             return;
-        System.out.println("Original: " + read(file));
-        cache.save();
-        System.out.println("Modified: " + read(file));
+        System.out.println("Original: " + cache.dumpOld());
+        System.out.println("Modified: " + cache.dump());
         Assertions.assertTrue(cache.isSame());
     }
 
     private static void isNotSame(HashStore cache, File file) throws IOException {
-        if (!cache.isSame())
+        if (cache.isSame())
             return;
-        System.out.println("Original: " + read(file));
-        cache.save();
-        System.out.println("Modified: " + read(file));
+        System.out.println("Original: " + cache.dumpOld());
+        System.out.println("Modified: " + cache.dump());
         Assertions.assertFalse(cache.isSame());
-    }
-
-    private static String read(File file) throws IOException {
-        if (file.isDirectory())
-            file = new File(file, ".cache");
-        else
-            file = new File(file.getAbsolutePath() + ".cache");
-
-        return String.join("\n",  Files.readAllLines(file.toPath()));
     }
 
     @Test
