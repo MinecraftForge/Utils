@@ -57,13 +57,13 @@ public class MinecraftVersion {
                     }
                 }
             }
-            libs.add(new Lib(lib.name, lib.downloads.artifact, os));
+            libs.add(new Lib(lib.name, lib.downloads.artifact, os, lib));
 
             if (lib.natives != null && lib.downloads.classifiers != null) {
                 lib.natives.forEach((nativeOS, classifier) -> {
                     LibraryDownload nativeLib = lib.downloads.classifiers.get(nativeOS);
                     if (nativeLib != null)
-                        libs.add(new Lib(lib.name + ':' + classifier, nativeLib, EnumSet.of(Rule.OS.toOS(nativeOS))));
+                        libs.add(new Lib(lib.name + ':' + classifier, nativeLib, EnumSet.of(Rule.OS.toOS(nativeOS)), lib));
                 });
             }
         }
@@ -75,11 +75,13 @@ public class MinecraftVersion {
         public final String coord;
         public final LibraryDownload dl;
         public final EnumSet<OS> os;
+        public final Library info;
 
-        public Lib(String coord, LibraryDownload dl, EnumSet<OS> os) {
+        public Lib(String coord, LibraryDownload dl, EnumSet<OS> os, Library info) {
             this.coord = coord;
             this.dl = dl;
             this.os = os;
+            this.info = info;
         }
 
         public boolean allows(OS os) {
@@ -99,6 +101,8 @@ public class MinecraftVersion {
         public Map<String, String> natives;
         /** The rules for the library. */
         public List<Rule> rules;
+        /** The rules for extracting from this library, only seen for natives */
+        public @Nullable ExtractRules extract;
     }
 
     /** Represents the downloads for a library. */
@@ -150,6 +154,10 @@ public class MinecraftVersion {
                 return toOS(this.name);
             }
         }
+    }
+
+    public static class ExtractRules {
+        public @Nullable List<String> exclude;
     }
 
     /**
