@@ -61,7 +61,7 @@ public class MinecraftVersion {
 
             if (lib.natives != null && lib.downloads.classifiers != null) {
                 lib.natives.forEach((nativeOS, classifier) -> {
-                    LibraryDownload nativeLib = lib.downloads.classifiers.get(nativeOS);
+                    LibraryDownload nativeLib = lib.downloads.classifiers.get(classifier);
                     if (nativeLib != null)
                         libs.add(new Lib(lib.name + ':' + classifier, nativeLib, EnumSet.of(Rule.OS.toOS(nativeOS)), lib));
                 });
