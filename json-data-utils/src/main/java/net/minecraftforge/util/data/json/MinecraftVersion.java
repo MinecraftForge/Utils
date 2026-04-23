@@ -13,6 +13,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 // TODO: [MCMaven][Documentation][MinecraftVersion] What in here is nullable?
 /** Represents a Minecraft version and its artifacts. */
@@ -35,21 +36,24 @@ public class MinecraftVersion {
 
     public List<Lib> getLibs() {
         List<Lib> libs = new ArrayList<>();
+        List<OS> DEFAULT = Arrays.asList(OS.WINDOWS, OS.MACOS, OS.LINUX);
 
         for (Library lib : this.libraries) {
             EnumSet<OS> os = EnumSet.noneOf(OS.class);
-            if (lib.rules != null) {
+            if (lib.rules == null) {
+                os.addAll(DEFAULT);
+            } else {
                 for (Rule rule : lib.rules) {
                     switch (rule.action) {
                         case "allow":
                             if (rule.os == null)
-                                os.addAll(Arrays.asList(OS.WINDOWS, OS.MACOS, OS.LINUX));
+                                os.addAll(DEFAULT);
                             else
                                 os.add(rule.os.toOS());
                             break;
                         case "disallow":
                             if (os.isEmpty())
-                                os.addAll(Arrays.asList(OS.WINDOWS, OS.MACOS, OS.LINUX));
+                                os.addAll(DEFAULT);
 
                             //noinspection DataFlowIssue
                             os.remove(rule.os.toOS());
@@ -57,14 +61,17 @@ public class MinecraftVersion {
                     }
                 }
             }
+
             libs.add(new Lib(lib.name, lib.downloads.artifact, os, lib));
 
             if (lib.natives != null && lib.downloads.classifiers != null) {
-                lib.natives.forEach((nativeOS, classifier) -> {
+                for (Entry<String, String> entry : lib.natives.entrySet()) {
+                    OS nativeOS = Rule.OS.toOS(entry.getKey());
+                    String classifier = entry.getValue();
                     LibraryDownload nativeLib = lib.downloads.classifiers.get(classifier);
                     if (nativeLib != null)
-                        libs.add(new Lib(lib.name + ':' + classifier, nativeLib, EnumSet.of(Rule.OS.toOS(nativeOS)), lib));
-                });
+                        libs.add(new Lib(lib.name + ':' + classifier, nativeLib, os.contains(nativeOS) ? EnumSet.of(nativeOS) : EnumSet.noneOf(OS.class), lib));
+                }
             }
         }
 
@@ -85,7 +92,7 @@ public class MinecraftVersion {
         }
 
         public boolean allows(OS os) {
-            return this.os.isEmpty() || this.os.contains(os);
+            return this.os.contains(os);
         }
     }
 
