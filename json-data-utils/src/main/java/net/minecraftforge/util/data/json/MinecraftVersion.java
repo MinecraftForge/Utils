@@ -28,6 +28,10 @@ public class MinecraftVersion {
     public Library[] libraries;
     /** The asset index reference. */
     public AssetsIndexInfo assetIndex;
+    /** The release type, typically `release` or `snapshot` */
+    public String type;
+    /** The version to inherit values from, Nullable */
+    public String inheritsFrom;
 
     public static final class JavaVersion {
         public String component;
