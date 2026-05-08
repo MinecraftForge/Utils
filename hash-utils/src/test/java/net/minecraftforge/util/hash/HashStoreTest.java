@@ -28,7 +28,7 @@ public class HashStoreTest {
     }
 
     private static void isNotSame(HashStore cache, File file) throws IOException {
-        if (cache.isSame())
+        if (!cache.isSame())
             return;
         System.out.println("Original: " + cache.dumpOld());
         System.out.println("Modified: " + cache.dump());

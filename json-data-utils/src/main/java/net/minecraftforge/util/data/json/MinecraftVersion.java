@@ -66,9 +66,9 @@ public class MinecraftVersion {
                 }
             }
 
-            libs.add(new Lib(lib.name, lib.downloads.artifact, os.containsAll(DEFAULT) ? EnumSet.noneOf(OS.class) : os, lib));
+            libs.add(new Lib(lib.name, lib.downloads == null ? null : lib.downloads.artifact, os.containsAll(DEFAULT) ? EnumSet.noneOf(OS.class) : os, lib));
 
-            if (lib.natives != null && lib.downloads.classifiers != null) {
+            if (lib.natives != null && lib.downloads != null && lib.downloads.classifiers != null) {
                 for (Entry<String, String> entry : lib.natives.entrySet()) {
                     OS nativeOS = Rule.OS.toOS(entry.getKey());
                     String classifier = entry.getValue();
