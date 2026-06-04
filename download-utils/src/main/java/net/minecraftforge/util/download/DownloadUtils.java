@@ -30,6 +30,8 @@ public final class DownloadUtils {
     public static byte[] downloadBytes(String url) throws IOException {
         try (InputStream stream = DownloadUtilsImpl.connect(url)) {
             return DownloadUtilsImpl.readInputStream(stream);
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
             // We catch "Exception" here since it might not be an IOException.
             throw new DownloadFailedException(url, e);
@@ -93,9 +95,11 @@ public final class DownloadUtils {
             Path path = target.toPath();
             Files.createDirectories(path.getParent());
             Files.copy(stream, path, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw e;
         } catch (Exception e) {
             // We catch "Exception" here since it might not be an IOException.
-            throw new IOException(url, e);
+            throw new DownloadFailedException(url, e);
         }
     }
 
@@ -118,6 +122,8 @@ public final class DownloadUtils {
     }
 
     private static final class DownloadFailedException extends IOException {
+        private static final long serialVersionUID = 1L;
+
         public DownloadFailedException(String url, Throwable cause) {
             super("Failed to download " + url, cause);
         }
