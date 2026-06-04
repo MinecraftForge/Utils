@@ -4,6 +4,7 @@
  */
 package net.minecraftforge.util.data.json;
 
+import net.minecraftforge.util.os.Arch;
 import net.minecraftforge.util.os.OS;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,6 +73,10 @@ public class MinecraftVersion {
                 for (Entry<String, String> entry : lib.natives.entrySet()) {
                     OS nativeOS = Rule.OS.toOS(entry.getKey());
                     String classifier = entry.getValue();
+                    if (classifier.contains("${arch}")) {
+                        String bits = Arch.current().name().contains("64") ? "64" : "32";
+                        classifier = classifier.replace("${arch}", bits);
+                    }
                     LibraryDownload nativeLib = lib.downloads.classifiers.get(classifier);
                     if (nativeLib != null && os.contains(nativeOS))
                         libs.add(new Lib(lib.name + ':' + classifier, nativeLib, EnumSet.of(nativeOS), lib));
