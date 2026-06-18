@@ -331,7 +331,9 @@ public final class FileUtils {
 
     private static void writeEntry(ZipOutputStream zos, Info file) throws IOException {
         zos.putNextEntry(FileUtils.getStableEntry(file.name));
-        file.stream.get().transferTo(zos);
+        try (var is = file.stream().get()) {
+            is.transferTo(zos);
+        }
         zos.closeEntry();
     }
 
