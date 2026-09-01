@@ -7,10 +7,14 @@ package net.minecraftforge.util.os;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Represents an operating system.
@@ -258,5 +262,61 @@ public enum OS {
         }
 
         return LINUX;
+    }
+
+    /**
+     * Attempt to get the current OS's version, using OS specific processes.
+     * Defaults back to System.getProperty("os.version") if unable to retrieve version for any reason.
+     *
+     * We don't just use "os.version" because it does not include the full versions for Windows
+     */
+    public static String getCurrentVersion() {
+        return LazyVersion.VERSION;
+    }
+
+    private static class LazyVersion {
+        private static final String VERSION = makeVersion();
+
+        private static String makeVersion() {
+            // On Windows, os.version doesn't contain the build information, so its just '10.0' when we want '10.0.22631'
+            if (OS.current() == OS.WINDOWS) {
+                String cmd = getCommandResult("cmd.exe", "/c", "ver");
+                // The result should be something like `Microsoft Windows [Version 10.0.22631.6199]`
+                if (cmd != null && cmd.endsWith("]")) {
+                    Pattern numbers = Pattern.compile("\\d+(\\.\\d+)+]$");
+                    Matcher matcher = numbers.matcher(cmd);
+                    if (matcher.find()) {
+                        String match = matcher.group();
+                        return match.substring(0, match.length() - 1); // Remove ]
+                    }
+                }
+            }
+
+            // On linux based system, os.version is equal to `uname -r` so just trust it
+            return System.getProperty("os.version");
+        }
+    }
+
+    public static String getCommandResult(String... command) {
+        ProcessBuilder pb = new ProcessBuilder(command);
+        try {
+            Process p = pb.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+            // We only want the first non-empty line
+            String result = null;
+            for (String line; (line = br.readLine()) != null; ) {
+                line = line.trim();
+                if (!line.isEmpty() && result == null)
+                    result = line;
+            }
+            br.close();
+
+            if (p.waitFor() != 0)
+                return null;
+            return result;
+        } catch (IOException | InterruptedException | SecurityException e) {
+            return null;
+        }
     }
 }
