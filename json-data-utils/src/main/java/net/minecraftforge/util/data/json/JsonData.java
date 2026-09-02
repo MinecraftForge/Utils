@@ -24,6 +24,7 @@ import java.io.InputStreamReader;
 public class JsonData {
     private static final Gson GSON = new GsonBuilder()
             .setObjectToNumberStrategy(JsonData::readNumber)
+            .registerTypeAdapter(MinecraftVersion.Argument.class, new MinecraftVersion.Argument.Serializer())
             .setPrettyPrinting()
             .create();
 
