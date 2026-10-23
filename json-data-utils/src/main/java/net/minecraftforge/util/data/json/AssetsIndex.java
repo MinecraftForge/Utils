@@ -4,8 +4,6 @@
  */
 package net.minecraftforge.util.data.json;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Map;
 
 public class AssetsIndex {
